@@ -26,6 +26,9 @@ Queue_T Queue_new(void)
 void Queue_enqueue(Queue_T queue, void *ep)
 {
     struct elem *new_node;
+    // Always recommended to do sizeof a dereferenced pointer variable here
+    // not of the type in case the type changes, the malloc could still
+    // execute and allocate too much or too little memory
     new_node = malloc(sizeof(*new_node));
     new_node->data = ep;
     new_node->next = NULL;

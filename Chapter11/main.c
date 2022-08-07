@@ -21,6 +21,11 @@ void Seq_free(T *seq) {
     Array_free(&&((*seq)->array));
     FREE(*seq)
 }
+
+Note that for Sequence and Ring, the ith value is returned by get as opposed
+to a pointer to that value as in Array. Not sure why Array is implemented as
+such, perhaps that dynamic array is implemented such that the elements are
+specified by size not by value.
 */
 
 void print_str(void *a)

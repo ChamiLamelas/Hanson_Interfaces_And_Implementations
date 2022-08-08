@@ -22,6 +22,16 @@ p (which appeared until the second malloc to be a dangling
 pointer) inadvertently pointing to some other day which
 could lead to further bugs. This is the first common
 memory management error given in section 5.
+
+Why does ((x + y - 1)//y) * y round up to the smallest multiple
+of y that is larger than x?
+
+Let x = uy + v where 0 <= v < y and u is an integer.
+Get: ((uy + v + y - 1)//y) * y
+// is integer division so this yields:
+(u+1) * y
+
+This is indeed the smallest multiple of y that is larger than x.
 */
 
 #define NULL_SET(p) ((p) = NULL)

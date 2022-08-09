@@ -1,3 +1,5 @@
+// Improved version that includes top, size
+
 #ifndef STACK_INCLUDED
 #define STACK_INCLUDED
 

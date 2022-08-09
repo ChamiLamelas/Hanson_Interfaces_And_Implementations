@@ -1,4 +1,7 @@
 #include "stack.h"
+
+// Use malloc, free, assert instead of improved versions (not
+// implemented yet)
 #include <stdlib.h>
 #include <assert.h>
 

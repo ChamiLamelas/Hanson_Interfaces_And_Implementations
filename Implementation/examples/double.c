@@ -17,10 +17,10 @@ next line, then that is counted as an adjacent instance.
 #include <string.h>
 #include <ctype.h>
 
-const int MAX_WORD_SIZE = 256;
+#define MAX_WORD_SIZE 256
 
-void scan_file(char *fp);
-int get_word(FILE *f, char *word_buf, int *curr_line_ptr);
+static void scan_file(char *fp);
+static int get_word(FILE *f, char *word_buf, int *curr_line_ptr);
 
 int main(int argc, char *argv[])
 {

@@ -5,16 +5,22 @@
 #include "atom.h"
 #include <limits.h>
 #include <string.h>
+#include "except.h"
+
+static Except_T ex = {"exception"};
+static Except_T ex2 = {"exception2"};
 
 static void Arith_test(void);
 static void Stack_test(void);
 static void Atom_test(void);
+static void Except_test(void);
 
 int main(int argc, char *argv[])
 {
     // Arith_test();
     // Stack_test();
-    Atom_test();
+    // Atom_test();
+    Except_test();
     return 0;
 }
 
@@ -103,4 +109,113 @@ void Atom_test(void)
     const char *atom_empty2 = Atom_string("");
     assert(atom_empty == atom_empty2);
     puts("Atom_test finished");
+}
+
+void Raise_Ex(void) {
+    RAISE(ex);
+}
+
+void Raise_and_Except_Ex(void) {
+    TRY
+        RAISE(ex);
+    EXCEPT (ex)
+        printf("Exception %s\n", ex.reason);
+    END_TRY;
+}
+
+void Except_test()
+{
+    puts("-- TRY END_TRY");
+    TRY
+        puts("hello");
+    END_TRY;
+
+    puts("-- TRY EXCEPT END_TRY");
+    TRY
+        puts("hello");
+    EXCEPT(ex)
+        puts("Should not print");
+    END_TRY;
+
+    puts("-- TRY RAISE EXCEPT END_TRY");
+    TRY
+        RAISE(ex);
+    EXCEPT(ex)
+        printf("Caught exception %s\n", ex.reason);
+    END_TRY;
+
+    puts("-- TRY RAISE END_TRY");
+    // TRY
+    //     RAISE(ex);
+    // END_TRY;
+
+    puts("-- TRY RAISE EXCEPT DIFFERENT END_TRY");
+    // TRY
+    //     RAISE(ex);
+    // EXCEPT(ex2)
+    //     puts("Caught different exception");
+    // END_TRY;
+
+    puts("-- TRY RAISE FINALLY END_TRY");
+    // TRY
+    //     RAISE(ex);
+    // FINALLY
+    //     puts("Finally runs before abort");
+    // END_TRY;
+
+    puts("-- TRY RAISE EXCEPT FINALLY END_TRY");
+    TRY
+        RAISE(ex);
+    EXCEPT(ex)
+        printf("Exception %s\n", ex.reason);
+    FINALLY
+        puts("Finally runs after handling");
+    END_TRY;
+
+    puts("-- TRY RAISE ELSE END_TRY");
+    TRY
+        RAISE(ex);
+    ELSE
+        puts("Else");
+    END_TRY;
+
+    puts("-- TRY RAISE EXCEPT DIFFERENT ELSE END_TRY");
+    TRY
+        RAISE(ex2);
+    EXCEPT(ex)
+        puts("Caught different exception");
+    ELSE
+        puts("Caught everything");
+    END_TRY;
+
+    puts("-- TRY RAISE EXCEPT DIFFERENT ELSE FINALLY END_TRY");
+    TRY
+        RAISE(ex2);
+    EXCEPT(ex)
+        puts("Caught different exception");
+    ELSE
+        puts("Caught everything");
+    FINALLY
+        puts("Finally runs after handling");
+    END_TRY;
+
+    puts("-- CATCH RAISED EXCEPTION FROM NESTED FUNCTION");
+    TRY
+        Raise_Ex();
+    EXCEPT(ex)
+        printf("Exception %s\n", ex.reason);
+    END_TRY;
+
+    puts("-- CATCH RAISED EXCEPTIONS ON TWO LEVELS");
+    TRY
+        Raise_and_Except_Ex();
+        RAISE(ex2);
+    EXCEPT(ex2)
+        printf("Exception %s\n", ex2.reason);
+    END_TRY;
+
+    puts("-- CRASH FROM NESTED FUNCTION");
+    // Raise_Ex();
+
+    puts("Except_test done");
 }

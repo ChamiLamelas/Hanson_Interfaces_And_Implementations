@@ -14,4 +14,5 @@ extern void *Stack_top(T s);
 extern void *Stack_pop(T s);
 extern void Stack_free(T *s);
 
+#undef T
 #endif

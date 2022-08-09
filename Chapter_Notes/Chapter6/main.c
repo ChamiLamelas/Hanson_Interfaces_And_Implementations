@@ -40,6 +40,10 @@ int main(int argc, char *argv[])
     struct A *sp = vp;
     printf("%d\n", sizeof(*sp));
 
+    // Cannot implicitly convert between non void pointer types
+    // But you can with void *: https://stackoverflow.com/a/35410601
+    char *c2p = (char *)ip;
+
     free(vp);
     return 0;
 }

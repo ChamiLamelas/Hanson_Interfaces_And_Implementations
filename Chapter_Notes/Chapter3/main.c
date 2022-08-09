@@ -22,11 +22,12 @@
 // the pointe rin position to write at the len + 1 spots allocated
 // in the above malloc
 
-static struct atom {
-    struct atom *link;
-    int len;
-    char *str;
-};
+// static struct atom
+// {
+//     struct atom *link;
+//     int len;
+//     char *str;
+// };
 
 int main(int argc, char *argv[])
 {
@@ -51,7 +52,5 @@ int main(int argc, char *argv[])
 
     strcpy(str_dest, c);
     printf("str: %c %c %c\n", str_dest[0], str_dest[1], str_dest[2]);
-
-    printf("%s\n", "Hello, World!");
     return 0;
 }

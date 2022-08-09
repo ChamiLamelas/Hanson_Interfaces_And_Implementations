@@ -85,7 +85,9 @@ int Atom_length(const char *str)
 
 const char *Atom_new(const char *str, int len)
 {
-    assert(str && len > 0);
+    // Support len = 0 so we can have an atom for an empty
+    // string
+    assert(str && len >= 0);
     int h = hash(str, len);
     int i;
     for (struct node *tmp = buckets[h]; tmp; tmp = tmp->next)
@@ -130,7 +132,8 @@ const char *Atom_new(const char *str, int len)
     new_node->str = (char *)(new_node + 1);
 
     // Copy data over
-    memcpy(new_node->str, str, len);
+    if (len > 0) 
+        memcpy(new_node->str, str, len);
     new_node->str[len] = '\0';
 
     // Add into table

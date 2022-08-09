@@ -99,5 +99,8 @@ void Atom_test(void)
     sprintf(check, "%ld", LONG_MIN);
     assert(strcmp(check, atom_long_min) == 0);
     assert(atom_long_min == atom_long_min_2);
+    const char *atom_empty = Atom_string("");
+    const char *atom_empty2 = Atom_string("");
+    assert(atom_empty == atom_empty2);
     puts("Atom_test finished");
 }

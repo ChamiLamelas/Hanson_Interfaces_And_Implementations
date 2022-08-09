@@ -1,13 +1,13 @@
 #include <stdio.h>
 #include <setjmp.h>
 #include <stdlib.h>
-
+#include "except.h"
 
 /*
-A couple things to note about this macro: 
+A couple things to note about this macro:
 1. To separate a macro over multiple lines, end each line with \
 2. It is customary with macros to surround instances of the parameter in parenthesis
-   in case the macro is applied to some expression. 
+   in case the macro is applied to some expression.
 3. (a,b,c) is valid in C. It will evaluate a, then b, then c but only return c. Thus,
    I believe that 0 is included at the end of the function body (which is a print,
    abort, then a 0) in order that something can be returned. abort() doesn't return
@@ -16,7 +16,7 @@ A couple things to note about this macro:
 Note also the meaning of e1 || e2 being used here and the reason for the void cast
 provided in the reading.
 
-See also: 
+See also:
 https://stackoverflow.com/questions/8896281/why-am-i-getting-void-value-not-ignored-as-it-ought-to-be
 https://stackoverflow.com/questions/54142/how-does-the-comma-operator-work
 https://stackoverflow.com/questions/39628799/void-cast-macro-explaination
@@ -49,7 +49,7 @@ That can be used to report the error and terminate execution.
 Demo 1: https://en.wikipedia.org/wiki/Setjmp.h
 Demo 2: https://www.tutorialspoint.com/c_standard_library/c_function_longjmp.htm
 
-volatile keyboard specifies that a variable may be changed outside of
+volatile keyword specifies that a variable may be changed outside of
 the code (i.e. dependent on implementation or something else). Hence it is
 used for variables declared in between setjmp, longjmp:
 https://stackoverflow.com/questions/246127/why-is-volatile-needed-in-c
@@ -143,6 +143,29 @@ int main(int argc, char *argv[])
 
     printf("%d %d %d\n", x, y, z);
     printf("%d %d %d\n", a, b, c);
+
+    // Switch (e, 0) default: f
+    // Will evaluate e, then f (default case evaluates as there is no 0 case)
+    // https://stackoverflow.com/questions/47624957/what-is-the-purpose-of-a-switch-0-statement-in-c
+    // https://www.tutorialspoint.com/cprogramming/switch_statement_in_c.htm
+    // When used in the RETURN x; macro it turns into switch (e, 0) default: return x;
+    int y = 0;
+    int z = 0;
+    switch (y = 1, 0)
+    default:
+        z = 1;
+    printf("%d %d\n", y, z);
+
+    Except_T ex = {"exception"};
+    TRY
+        RAISE(ex);
+    EXCEPT(ex)
+        puts("caught exception");
+    END_TRY;
+
+    TRY
+        RAISE(ex);
+    END_TRY;
 
     return 0;
 }

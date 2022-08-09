@@ -20,7 +20,7 @@ int main(int argc, char *argv[])
     // Arith_test();
     // Stack_test();
     // Atom_test();
-    Except_test();
+    // Except_test();
     return 0;
 }
 
@@ -111,15 +111,17 @@ void Atom_test(void)
     puts("Atom_test finished");
 }
 
-void Raise_Ex(void) {
+void Raise_Ex(void)
+{
     RAISE(ex);
 }
 
-void Raise_and_Except_Ex(void) {
+void Raise_and_Except_Ex(void)
+{
     TRY
         RAISE(ex);
-    EXCEPT (ex)
-        printf("Exception %s\n", ex.reason);
+    EXCEPT(ex)
+    printf("Exception %s\n", ex.reason);
     END_TRY;
 }
 
@@ -134,14 +136,14 @@ void Except_test()
     TRY
         puts("hello");
     EXCEPT(ex)
-        puts("Should not print");
+    puts("Should not print");
     END_TRY;
 
     puts("-- TRY RAISE EXCEPT END_TRY");
     TRY
         RAISE(ex);
     EXCEPT(ex)
-        printf("Caught exception %s\n", ex.reason);
+    printf("Caught exception %s\n", ex.reason);
     END_TRY;
 
     puts("-- TRY RAISE END_TRY");
@@ -167,9 +169,9 @@ void Except_test()
     TRY
         RAISE(ex);
     EXCEPT(ex)
-        printf("Exception %s\n", ex.reason);
+    printf("Exception %s\n", ex.reason);
     FINALLY
-        puts("Finally runs after handling");
+    puts("Finally runs after handling");
     END_TRY;
 
     puts("-- TRY RAISE ELSE END_TRY");
@@ -183,7 +185,7 @@ void Except_test()
     TRY
         RAISE(ex2);
     EXCEPT(ex)
-        puts("Caught different exception");
+    puts("Caught different exception");
     ELSE
         puts("Caught everything");
     END_TRY;
@@ -192,26 +194,26 @@ void Except_test()
     TRY
         RAISE(ex2);
     EXCEPT(ex)
-        puts("Caught different exception");
+    puts("Caught different exception");
     ELSE
         puts("Caught everything");
     FINALLY
-        puts("Finally runs after handling");
+    puts("Finally runs after handling");
     END_TRY;
 
     puts("-- CATCH RAISED EXCEPTION FROM NESTED FUNCTION");
     TRY
-        Raise_Ex();
+    Raise_Ex();
     EXCEPT(ex)
-        printf("Exception %s\n", ex.reason);
+    printf("Exception %s\n", ex.reason);
     END_TRY;
 
     puts("-- CATCH RAISED EXCEPTIONS ON TWO LEVELS");
     TRY
-        Raise_and_Except_Ex();
-        RAISE(ex2);
+    Raise_and_Except_Ex();
+    RAISE(ex2);
     EXCEPT(ex2)
-        printf("Exception %s\n", ex2.reason);
+    printf("Exception %s\n", ex2.reason);
     END_TRY;
 
     puts("-- CRASH FROM NESTED FUNCTION");

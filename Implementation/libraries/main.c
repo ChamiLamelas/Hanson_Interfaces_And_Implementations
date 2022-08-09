@@ -2,14 +2,19 @@
 #include "stack.h"
 #include <assert.h>
 #include <stdio.h>
+#include "atom.h"
+#include <limits.h>
+#include <string.h>
 
-void Arith_test(void);
-void Stack_test(void);
+static void Arith_test(void);
+static void Stack_test(void);
+static void Atom_test(void);
 
 int main(int argc, char *argv[])
 {
     // Arith_test();
-    Stack_test();
+    // Stack_test();
+    Atom_test();
     return 0;
 }
 
@@ -75,4 +80,24 @@ void Stack_test(void)
     Stack_free(&s);
     assert(s == NULL);
     puts("Stack_test finished");
+}
+
+void Atom_test(void)
+{
+    const char *atom_abc = Atom_string("abc");
+    const char *atom_abc2 = Atom_string("abc");
+    assert(atom_abc == atom_abc2);
+    const char *atom_1234 = Atom_int(1234);
+    const char *atom_1234_2 = Atom_int(1234);
+    assert(atom_1234 == atom_1234_2);
+    assert(Atom_length(atom_abc) == 3);
+    assert(Atom_length(atom_1234) == 4);
+    const char *atom_long_min = Atom_int(LONG_MIN);
+    const char *atom_long_min_2 = Atom_int(LONG_MIN);
+    // load LONG_MIN into a string for comparison
+    char check[255];
+    sprintf(check, "%ld", LONG_MIN);
+    assert(strcmp(check, atom_long_min) == 0);
+    assert(atom_long_min == atom_long_min_2);
+    puts("Atom_test finished");
 }

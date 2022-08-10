@@ -6,6 +6,7 @@
 #include <limits.h>
 #include <string.h>
 #include "except.h"
+#include "mem.h"
 
 static Except_T ex = {"exception"};
 static Except_T ex2 = {"exception2"};
@@ -14,6 +15,7 @@ static void Arith_test(void);
 static void Stack_test(void);
 static void Atom_test(void);
 static void Except_test(void);
+static void Mem_test(void);
 
 int main(int argc, char *argv[])
 {
@@ -21,6 +23,7 @@ int main(int argc, char *argv[])
     // Stack_test();
     // Atom_test();
     // Except_test();
+    Mem_test();
     return 0;
 }
 
@@ -220,4 +223,42 @@ void Except_test()
     // Raise_Ex();
 
     puts("Except_test done");
+}
+
+void Mem_test()
+{
+    void *ptr = NULL;
+    ptr = Mem_alloc(1, __FILE__, __LINE__);
+    assert(ptr);
+    Mem_free(ptr, __FILE__, __LINE__);
+    ptr = NULL;
+    ptr = ALLOC(1);
+    assert(ptr);
+    FREE(ptr);
+    assert(ptr == NULL);
+    ptr = Mem_calloc(1, 1, __FILE__, __LINE__);
+    assert(ptr);
+    assert((*(char *)ptr)==0);
+    FREE(ptr);
+    ptr = CALLOC(1, 1);
+    assert(ptr);
+    assert((*(char *)ptr)==0);
+    FREE(ptr);
+    NEW(ptr);
+    assert(ptr);
+    FREE(ptr);
+    NEW0(ptr);
+    assert(ptr);
+    assert((*(char *)ptr)==0);
+    FREE(ptr);
+    // Uncomment to see these all abort via assert
+    // ptr = ALLOC(-1);
+    // ptr = CALLOC(-1, 1);
+    // ptr = CALLOC(1, -1);
+    NEW(ptr);
+    // ptr = RESIZE(ptr,-1);
+    FREE(ptr);
+    // FREE(ptr);
+    // RESIZE(ptr,1);
+    puts("Mem_test done");
 }

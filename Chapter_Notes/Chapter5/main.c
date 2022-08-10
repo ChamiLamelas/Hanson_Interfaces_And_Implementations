@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <limits.h>
 
 /*
 In 5.3, he mentions that one wants to protect against
@@ -34,7 +35,8 @@ Get: ((uy + v + y - 1)//y) * y
 This is indeed the smallest multiple of y that is larger than x.
 */
 
-#define NULL_SET(p) ((p) = NULL)
+// Better to surround the value in parenthesis for the future
+#define NULL_SET(p) (p) = NULL
 
 union Data
 {
@@ -122,6 +124,17 @@ int main(int argc, char *argv[])
     puts(str2);
     memset(str2, '*', 5);
     puts(str2);
+
+    size_t x = sizeof(int);
+    long xx = (long)x;
+    printf("%ld\n", xx);
+
+    size_t y = SIZE_MAX;
+    long yy = (long)y;
+    printf("%ld\n", yy);
+
+    int h = (puts("hello"), 1);
+    printf("%d\n", h);
 
     return 0;
 }

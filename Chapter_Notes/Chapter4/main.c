@@ -138,6 +138,7 @@ int main(int argc, char *argv[])
     printf("%d %d\n", t.a, t.b);
 
     // Can also partially initialize structs
+    // Other members set to 0: https://stackoverflow.com/a/330867
     struct T t2 = {1};
     printf("%d %d\n", t2.a, t2.b);
 

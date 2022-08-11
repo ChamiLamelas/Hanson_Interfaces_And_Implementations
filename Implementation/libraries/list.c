@@ -6,6 +6,7 @@
 
 #define T List_T
 
+
 static T make_node(void *data, T next)
 {
     T node;
@@ -316,7 +317,7 @@ T List_copy(T list)
     T *pp = &new_list;
     for (; list; list = list->next)
     {
-        (*pp) = make_node(list->data, NULL);
+        *pp = make_node(list->data, NULL);
         pp = &((*pp)->next);
     }
     return new_list;

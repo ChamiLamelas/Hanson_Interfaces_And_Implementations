@@ -64,7 +64,7 @@ static unsigned long scatter[256] = {
     2143346068, 1975249606, 1136476375, 262925046, 92778659, 1856406685,
     1884137923, 53392249, 1735424165, 1602280572};
 
-static int hash(const char *str, int len)
+static unsigned hash(const char *str, int len)
 {
     unsigned long h = 0;
     for (int i = 0; i < len; i++)
@@ -88,7 +88,7 @@ const char *Atom_new(const char *str, int len)
     // Support len = 0 so we can have an atom for an empty
     // string
     assert(str && len >= 0);
-    int h = hash(str, len);
+    unsigned h = hash(str, len);
     int i;
     for (struct node *tmp = buckets[h]; tmp; tmp = tmp->next)
         if (tmp->len == len)

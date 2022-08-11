@@ -36,7 +36,7 @@ static int num_nodes_left = 0;
 
 // https://stackoverflow.com/a/665545
 // sizeof(size_t) = sizeof(void*)
-static int hash(void *ptr)
+static unsigned hash(void *ptr)
 {
     return (((size_t)ptr) * 2654435761) % NUM_BUCKETS;
 }
@@ -125,7 +125,7 @@ void *Mem_alloc(long nbytes, const char *file, int line)
             tmp->block_size -= block_size;
             block_ptr = ((char *)tmp->block_ptr) + tmp->block_size;
             struct node *block_node = allocate_node(block_ptr, block_size, file, line);
-            int h = hash(block_ptr);
+            unsigned h = hash(block_ptr);
             block_node->next_bucket = buckets[h];
             buckets[h] = block_node;
         }

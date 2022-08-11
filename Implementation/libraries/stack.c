@@ -23,6 +23,7 @@ T Stack_new()
 {
     T s;
     s = malloc(sizeof(*s));
+    assert(s);
     s->head = NULL;
     s->size = 0;
     return s;
@@ -45,6 +46,7 @@ void Stack_push(T s, void *e)
     assert(s);
     struct node *new_node;
     new_node = malloc(sizeof(*new_node));
+    assert(new_node);
     new_node->data = e;
     new_node->next = s->head;
     s->head = new_node;

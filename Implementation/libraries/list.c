@@ -10,6 +10,7 @@ static T make_node(void *data, T next)
 {
     T node;
     node = malloc(sizeof(*node));
+    assert(node);
     node->data = data;
     node->next = next;
     return node;
@@ -353,6 +354,7 @@ void **List_toArray(T list, void *end)
     int len = List_length(list) + 1;
     void **arr;
     arr = malloc(len * sizeof(*arr));
+    assert(arr);
     for (int i = 0; i < len - 1; i++, list = list->next)
         arr[i] = list->data;
     arr[len - 1] = end;

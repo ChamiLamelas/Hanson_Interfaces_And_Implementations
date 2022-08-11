@@ -7,6 +7,7 @@
 #include <string.h>
 #include "except.h"
 #include "mem.h"
+#include "list.h"
 
 static Except_T ex = {"exception"};
 static Except_T ex2 = {"exception2"};
@@ -16,6 +17,7 @@ static void Stack_test(void);
 static void Atom_test(void);
 static void Except_test(void);
 static void Mem_test(void);
+static void List_test(void);
 
 int main(int argc, char *argv[])
 {
@@ -23,7 +25,8 @@ int main(int argc, char *argv[])
     // Stack_test();
     // Atom_test();
     // Except_test();
-    Mem_test();
+    // Mem_test();
+    List_test();
     return 0;
 }
 
@@ -238,18 +241,18 @@ void Mem_test()
     assert(ptr == NULL);
     ptr = Mem_calloc(1, 1, __FILE__, __LINE__);
     assert(ptr);
-    assert((*(char *)ptr)==0);
+    assert((*(char *)ptr) == 0);
     FREE(ptr);
     ptr = CALLOC(1, 1);
     assert(ptr);
-    assert((*(char *)ptr)==0);
+    assert((*(char *)ptr) == 0);
     FREE(ptr);
     NEW(ptr);
     assert(ptr);
     FREE(ptr);
     NEW0(ptr);
     assert(ptr);
-    assert((*(char *)ptr)==0);
+    assert((*(char *)ptr) == 0);
     FREE(ptr);
     // Uncomment to see these all abort via assert
     // ptr = ALLOC(-1);
@@ -261,4 +264,136 @@ void Mem_test()
     // FREE(ptr);
     // RESIZE(ptr,1);
     puts("Mem_test done");
+}
+
+void apply1(void **e, void *cl)
+{
+    *((int *)cl) += **((int **)e);
+}
+
+void apply2(void **e, void *cl)
+{
+    *e = cl;
+}
+
+void List_test()
+{
+    int data[3] = {1, 2, 3};
+    int *p[3];
+    for (int i = 0; i < 3; i++)
+        p[i] = &data[i];
+    int out = 0;
+    int *pout = &out;
+    puts("LIST(1,2,3,NULL)");
+    List_T ls = List_list(p[0], p[1], p[2], NULL);
+    assert(ls->data == p[0]);
+    assert(ls->next->data == p[1]);
+    assert(ls->next->next->data == p[2]);
+    assert(ls->next->next->next == NULL);
+    puts("LIST(NULL)");
+    List_T ls2 = List_list(NULL);
+    assert(ls2 == NULL);
+    puts("LIST PUSH (NULL,1)");
+    List_T ls3 = List_push(NULL, p[0]);
+    assert(ls3->data == p[0]);
+    assert(ls3->next == NULL);
+    puts("LIST PUSH (ls,1)");
+    List_T ls4 = List_push(ls, p[0]);
+    assert(ls4->data == p[0]);
+    assert(ls4->next->data == p[0]);
+    assert(ls4->next->next->data == p[1]);
+    assert(ls4->next->next->next->data == p[2]);
+    assert(ls4->next->next->next->next == NULL);
+    puts("LIST POP (ls4)");
+    List_T ls5 = List_pop(ls4, (void **)&pout);
+    assert(pout == p[0]);
+    assert(ls5->data == p[0]);
+    assert(ls5->next->data == p[1]);
+    assert(ls5->next->next->data == p[2]);
+    assert(ls5->next->next->next == NULL);
+    puts("LIST POP (NULL)");
+    List_T ls6 = List_pop(NULL, (void **)&pout);
+    assert(pout == p[0]);
+    assert(ls6 == NULL);
+    puts("LIST POP (ls4, NULL)");
+    // Uncomment for crash
+    // List_T ls7 = List_pop(ls4, NULL);
+    puts("LIST APPEND");
+    List_T ls8 = List_list(p[0], p[1], NULL);
+    List_T ls9 = List_list(p[2], NULL);
+    List_T ls10 = List_append(ls8, ls9);
+    assert(ls10->data == p[0]);
+    assert(ls10->next->data == p[1]);
+    assert(ls10->next->next->data == p[2]);
+    assert(ls10->next->next->next == NULL);
+    puts("LIST (,NULL)");
+    List_T ls11 = List_list(p[0], p[1], NULL);
+    List_T ls12 = List_append(ls11, NULL);
+    assert(ls12->data == p[0]);
+    assert(ls12->next->data == p[1]);
+    assert(ls12->next->next == NULL);
+    puts("LIST (NULL,)");
+    List_T ls13 = List_list(p[2], NULL);
+    List_T ls14 = List_append(NULL, ls13);
+    assert(ls14->data == p[2]);
+    assert(ls14->next == NULL);
+    puts("LIST REVERSE");
+    List_T ls15 = List_list(p[0], p[1], NULL);
+    List_T ls16 = List_reverse(ls15);
+    assert(ls16->data == p[1]);
+    assert(ls16->next->data == p[0]);
+    assert(ls16->next->next == NULL);
+    puts("LIST REVERSE (NULL)");
+    List_T ls17 = List_reverse(NULL);
+    assert(ls17 == NULL);
+    puts("LIST COPY");
+    List_T ls18 = List_list(p[0], p[1], NULL);
+    List_T ls19 = List_copy(ls18);
+    assert(ls19->data == p[0]);
+    assert(ls19->next->data == p[1]);
+    assert(ls19->next->next == NULL);
+    assert(ls19 != ls18);
+    assert(ls19->next != ls18->next);
+    puts("LIST COPY (NULL)");
+    List_T ls20 = List_copy(NULL);
+    assert(ls20 == NULL);
+    puts("LIST COPY (1)");
+    List_T ls21 = List_list(p[2], NULL);
+    List_T ls22 = List_copy(ls21);
+    assert(ls22->data = p[2]);
+    assert(ls22->next == NULL);
+    assert(ls22 != ls21);
+    puts("LIST LENGTH");
+    int len = List_length(NULL);
+    assert(len == 0);
+    len = List_length(ls21);
+    assert(len == 1);
+    len = List_length(ls18);
+    assert(len == 2);
+    puts("LIST APPLY 1");
+    int sum = 0;
+    List_T ls23 = List_list(p[0], p[1], p[2], NULL);
+    List_map(ls23, apply1, &sum);
+    assert(sum == 6);
+    puts("LIST APPLY 2");
+    List_T ls24 = List_list(p[0], p[1], p[2], NULL);
+    List_map(ls24, apply2, &sum);
+    assert(ls24->data == &sum);
+    assert(ls24->next->data == &sum);
+    assert(ls24->next->next->data == &sum);
+    puts("LIST TOARRAY");
+    List_T ls25 = List_list(p[0], p[1], p[2], NULL);
+    int **arr = (int **)List_toArray(ls25, NULL);
+    for (int i = 0; i < 3; i++)
+        assert(arr[i] == p[i]);
+    assert(arr[3] == NULL);
+    puts("LIST TOARRAY 1");
+    List_T ls26 = List_list(p[0], NULL);
+    int **arr2 = (int **)List_toArray(ls26, NULL);
+    assert(arr2[0] == p[0]);
+    assert(arr2[1] == NULL);
+    puts("LIST TOARRAY NULL");
+    int **arr3 = (int **)List_toArray(NULL, NULL);
+    assert(arr3[0] == NULL);
+    puts("List_test done");
 }

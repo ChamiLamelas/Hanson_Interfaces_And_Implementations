@@ -50,7 +50,7 @@ do {
 #include <stdio.h>
 
 #define T Except_T
-typedef struct _T
+typedef struct T
 {
     const char *reason;
 } T;

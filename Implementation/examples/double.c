@@ -1,5 +1,5 @@
 /*
-Output for: ./double test2.txt 
+Output for: ./double test2.txt
 
 test2.txt:3: a
 test2.txt:7: c
@@ -16,11 +16,11 @@ next line, then that is counted as an adjacent instance.
 #include <errno.h>
 #include <string.h>
 #include <ctype.h>
+#include "../libraries/getword.h"
 
 #define MAX_WORD_SIZE 256
 
 static void scan_file(char *fp);
-static int get_word(FILE *f, char *word_buf, int *curr_line_ptr);
 
 int main(int argc, char *argv[])
 {
@@ -44,7 +44,7 @@ void scan_file(char *fp)
     char curr_buf[MAX_WORD_SIZE];
     char prev_buf[MAX_WORD_SIZE];
 
-    while (get_word(f, curr_buf, &curr_line))
+    while (get_word(f, curr_buf, &curr_line, MAX_WORD_SIZE, isalnum))
     {
         if (curr_line > 1 && strcmp(curr_buf, prev_buf) == 0)
             if (fp == NULL)
@@ -56,27 +56,3 @@ void scan_file(char *fp)
 
     fclose(f);
 }
-
-int get_word(FILE *f, char *word_buf, int *curr_line_ptr)
-{
-    int c = getc(f);
-
-    for (; c != EOF && !isalnum(c); c = getc(f))
-        if (c == '\n')
-            (*curr_line_ptr)++;
-
-    int buf_idx = 0;
-    for (; c != EOF && isalnum(c); c = getc(f))
-        if (buf_idx < MAX_WORD_SIZE - 1)
-            word_buf[buf_idx++] = c;
-    word_buf[buf_idx] = '\0';
-
-    if (buf_idx > 0)
-    {
-        ungetc(c, f);
-        return 1;
-    }
-    return 0;
-}
-
-

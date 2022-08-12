@@ -9,6 +9,7 @@
 #include "mem.h"
 #include "list.h"
 #include "table.h"
+#include <stdlib.h>
 
 static Except_T ex = {"exception"};
 static Except_T ex2 = {"exception2"};
@@ -449,6 +450,12 @@ void table_apply2(void *key, void **value, void *cl)
     *value = cl;
 }
 
+void table_apply3(void *key, void **value, void *cl)
+{
+    free(*value);
+    *value = NULL;
+}
+
 void Table_test(void)
 {
     const char *key_data[5] = {"a", "b", "c", "d", "e"};
@@ -522,6 +529,22 @@ void Table_test(void)
         assert(Table_get(t, k[i]) == v[i]);
         assert(Table_length(t) == i + 1);
     }
+    Table_free(&t);
+    assert(t == NULL);
+    puts("TABLE FREE VALUES");
+    t = Table_new(20, int_cmp, bad_hash);
+    int *dv[5];
+    for (int i = 0; i < 5; i++)
+    {
+        dv[i] = malloc(sizeof(*dv[i]));
+        *dv[i] = i;
+    }
+    for (int i = 0; i < 5; i++)
+        Table_put(t, k[i], dv[i]);
+    Table_map(t, table_apply3, NULL);
+    assert(Table_length(t) == 5);
+    for (int i = 0; i < 5; i++)
+        assert(Table_get(t, k[i]) == NULL);
     Table_free(&t);
     assert(t == NULL);
     puts("TABLE CHECK BAD INPUTS");

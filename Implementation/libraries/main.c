@@ -10,6 +10,7 @@
 #include "list.h"
 #include "table.h"
 #include <stdlib.h>
+#include "set.h"
 
 static Except_T ex = {"exception"};
 static Except_T ex2 = {"exception2"};
@@ -21,6 +22,7 @@ static void Except_test(void);
 static void Mem_test(void);
 static void List_test(void);
 static void Table_test(void);
+static void Set_test(void);
 
 int main(int argc, char *argv[])
 {
@@ -30,7 +32,8 @@ int main(int argc, char *argv[])
     // Except_test();
     // Mem_test();
     // List_test();
-    Table_test();
+    // Table_test();
+    Set_test();
     return 0;
 }
 
@@ -460,9 +463,9 @@ void Table_test(void)
 {
     const char *key_data[5] = {"a", "b", "c", "d", "e"};
     int value_data[5] = {1, 2, 3, 4, 5};
-    char *k[3];
-    int *v[3];
-    for (int i = 0; i < 3; i++)
+    char *k[5];
+    int *v[5];
+    for (int i = 0; i < 5; i++)
     {
         k[i] = (char *)Atom_string(key_data[i]);
         v[i] = &value_data[i];
@@ -547,6 +550,16 @@ void Table_test(void)
         assert(Table_get(t, k[i]) == NULL);
     Table_free(&t);
     assert(t == NULL);
+    puts("TABLE POINTER INDEPENDENT CMP");
+    t = Table_new(20, int_cmp, bad_hash);
+    int x = 1;
+    int *onep1 = &x;
+    int y = 1;
+    int *onep2 = &y;
+    int z = 2;
+    Table_put(t, onep1, &z);
+    assert(Table_get(t, onep2));
+    Table_free(&t);
     puts("TABLE CHECK BAD INPUTS");
     // Uncomment to see assertion failures
     // t = Table_new(-1, NULL, NULL);
@@ -561,4 +574,306 @@ void Table_test(void)
     // Table_map(NULL, NULL, NULL);
     // Table_toArray(NULL, NULL);
     puts("Table_test done");
+}
+
+void set_apply1(const void *member, void *cl)
+{
+    *((int *)cl) += strlen(member);
+}
+
+void Set_test(void)
+{
+    const char *member_data[5] = {"a", "b", "c", "d", "e"};
+    char *m[5];
+    for (int i = 0; i < 5; i++)
+    {
+        m[i] = (char *)Atom_string(member_data[i]);
+    }
+    puts("SET EMPTY BEHAVIOR");
+    Set_T s = Set_new(20, NULL, NULL);
+    assert(Set_length(s) == 0);
+    assert(!Set_member(s, m[0]));
+    assert(Set_remove(s, m[0]) == NULL);
+    assert(Set_length(s) == 0);
+    puts("SET ADD 1");
+    Set_put(s, m[0]);
+    assert(Set_length(s) == 1);
+    assert(Set_member(s, m[0]));
+    puts("SET DUPLICATE");
+    Set_put(s, m[0]);
+    assert(Set_length(s) == 1);
+    assert(Set_member(s, m[0]));
+    puts("SET REMOVE");
+    assert(Set_remove(s, m[0]) == m[0]);
+    assert(Set_length(s) == 0);
+    assert(!Set_member(s, m[0]));
+    Set_free(&s);
+    assert(s == NULL);
+    puts("SET COLLISION");
+    s = Set_new(20, int_cmp, bad_hash);
+    for (int i = 0; i < 3; i++)
+    {
+        Set_put(s, m[i]);
+        assert(Set_member(s, m[i]));
+        assert(Set_length(s) == i + 1);
+    }
+    for (int i = 0; i < 3; i++)
+    {
+        Set_put(s, m[i]);
+        assert(Set_member(s, m[i]));
+        assert(Set_length(s) == 3);
+    }
+    for (int i = 0; i < 3; i++)
+    {
+        assert(Set_remove(s, m[i]) == m[i]);
+        assert(!Set_member(s, m[i]));
+        assert(Set_length(s) == 2 - i);
+    }
+    Set_free(&s);
+    assert(s == NULL);
+    puts("SET MAP");
+    s = Set_new(20, int_cmp, bad_hash);
+    for (int i = 0; i < 3; i++)
+        Set_put(s, m[i]);
+    int sum = 0;
+    Set_map(s, set_apply1, &sum);
+    assert(sum == 3);
+    Set_free(&s);
+    assert(s == NULL);
+    puts("SET REHASH");
+    s = Set_new(3, NULL, NULL);
+    for (int i = 0; i < 5; i++)
+    {
+        Set_put(s, m[i]);
+        assert(Set_member(s, m[i]));
+        assert(Set_length(s) == i + 1);
+    }
+    Set_free(&s);
+    assert(s == NULL);
+    puts("SET UNION (s, EMPTY)");
+    s = Set_new(3, NULL, NULL);
+    for (int i = 0; i < 3; i++)
+        Set_put(s, m[i]);
+    Set_T s2 = Set_new(20, NULL, NULL);
+    Set_T o = Set_union(s, s2);
+    for (int i = 0; i < 3; i++)
+        assert(Set_member(o, m[i]));
+    assert(Set_length(o) == 3);
+    Set_free(&o);
+    o = Set_union(s2, s);
+    for (int i = 0; i < 3; i++)
+        assert(Set_member(o, m[i]));
+    assert(Set_length(o) == 3);
+    Set_free(&o);
+    puts("SET UNION (s, NULL)");
+    o = Set_union(s, NULL);
+    for (int i = 0; i < 3; i++)
+        assert(Set_member(o, m[i]));
+    assert(Set_length(o) == 3);
+    Set_free(&o);
+    o = Set_union(NULL, s);
+    for (int i = 0; i < 3; i++)
+        assert(Set_member(o, m[i]));
+    assert(Set_length(o) == 3);
+    Set_free(&o);
+    puts("SET UNION NO OVERLAP");
+    Set_put(s2, m[3]);
+    Set_put(s2, m[4]);
+    o = Set_union(s, s2);
+    for (int i = 0; i < 5; i++)
+        assert(Set_member(o, m[i]));
+    assert(Set_length(o) == 5);
+    Set_free(&o);
+    o = Set_union(s2, s);
+    for (int i = 0; i < 5; i++)
+        assert(Set_member(o, m[i]));
+    assert(Set_length(o) == 5);
+    Set_free(&o);
+    Set_free(&s2);
+    puts("SET UNION OVERLAP");
+    s2 = Set_new(20, NULL, NULL);
+    Set_put(s2, m[2]);
+    Set_put(s2, m[3]);
+    o = Set_union(s, s2);
+    for (int i = 0; i < 4; i++)
+        assert(Set_member(o, m[i]));
+    assert(Set_length(o) == 4);
+    Set_free(&o);
+    o = Set_union(s2, s);
+    for (int i = 0; i < 4; i++)
+        assert(Set_member(o, m[i]));
+    assert(Set_length(o) == 4);
+    Set_free(&o);
+    Set_free(&s2);
+    puts("SET INTER (s,EMPTY)");
+    s2 = Set_new(20, NULL, NULL);
+    o = Set_inter(s, s2);
+    assert(Set_length(o) == 0);
+    Set_free(&o);
+    o = Set_inter(s2, s);
+    assert(Set_length(o) == 0);
+    Set_free(&o);
+    puts("SET INTER (s,NULL)");
+    o = Set_inter(s, NULL);
+    assert(o && Set_length(o) == 0);
+    Set_free(&o);
+    o = Set_inter(NULL, s);
+    assert(o && Set_length(o) == 0);
+    Set_free(&o);
+    puts("SET INTER NO OVERLAP");
+    Set_put(s2, m[3]);
+    Set_put(s2, m[4]);
+    o = Set_inter(s, s2);
+    for (int i = 0; i < 5; i++)
+        assert(!Set_member(o, m[i]));
+    assert(Set_length(o) == 0);
+    Set_free(&o);
+    o = Set_inter(s2, s);
+    for (int i = 0; i < 5; i++)
+        assert(!Set_member(o, m[i]));
+    assert(Set_length(o) == 0);
+    Set_free(&o);
+    Set_free(&s2);
+    puts("SET INTER OVERLAP");
+    s2 = Set_new(20, NULL, NULL);
+    Set_put(s2, m[2]);
+    Set_put(s2, m[3]);
+    o = Set_inter(s, s2);
+    assert(!Set_member(o, m[0]));
+    assert(!Set_member(o, m[1]));
+    assert(!Set_member(o, m[3]));
+    assert(Set_member(o, m[2]));
+    assert(Set_length(o) == 1);
+    Set_free(&o);
+    o = Set_inter(s2, s);
+    assert(!Set_member(o, m[0]));
+    assert(!Set_member(o, m[1]));
+    assert(!Set_member(o, m[3]));
+    assert(Set_member(o, m[2]));
+    assert(Set_length(o) == 1);
+    Set_free(&o);
+    Set_free(&s2);
+    puts("SET MINUS (s,EMPTY)");
+    s2 = Set_new(20, NULL, NULL);
+    o = Set_minus(s, s2);
+    for (int i = 0; i < 3; i++)
+        assert(Set_member(o, m[i]));
+    assert(Set_length(o) == 3);
+    Set_free(&o);
+    o = Set_minus(s2, s);
+    assert(o && Set_length(o) == 0);
+    Set_free(&o);
+    puts("SET MINUS (s,NULL)");
+    o = Set_minus(s, NULL);
+    for (int i = 0; i < 3; i++)
+        assert(Set_member(o, m[i]));
+    assert(Set_length(o) == 3);
+    Set_free(&o);
+    o = Set_minus(NULL, s);
+    assert(o && Set_length(o) == 0);
+    Set_free(&o);
+    puts("SET MINUS NO OVERLAP");
+    Set_put(s2, m[3]);
+    Set_put(s2, m[4]);
+    o = Set_minus(s, s2);
+    for (int i = 0; i < 3; i++)
+        assert(Set_member(o, m[i]));
+    assert(Set_length(o) == 3);
+    Set_free(&o);
+    Set_free(&s2);
+    puts("SET MINUS OVERLAP");
+    s2 = Set_new(20, NULL, NULL);
+    Set_put(s2, m[2]);
+    Set_put(s2, m[3]);
+    o = Set_minus(s, s2);
+    for (int i = 0; i < 2; i++)
+        assert(Set_member(o, m[i]));
+    assert(Set_length(o) == 2);
+    Set_free(&o);
+    Set_free(&s2);
+    puts("SET DIFF (s,EMPTY)");
+    s2 = Set_new(20, NULL, NULL);
+    o = Set_diff(s, s2);
+    for (int i = 0; i < 3; i++)
+        assert(Set_member(o, m[i]));
+    assert(Set_length(o) == 3);
+    Set_free(&o);
+    o = Set_diff(s2, s);
+    for (int i = 0; i < 3; i++)
+        assert(Set_member(o, m[i]));
+    assert(Set_length(o) == 3);
+    Set_free(&o);
+    puts("SET DIFF (s,NULL)");
+    o = Set_diff(s, NULL);
+    for (int i = 0; i < 3; i++)
+        assert(Set_member(o, m[i]));
+    assert(Set_length(o) == 3);
+    Set_free(&o);
+    o = Set_diff(NULL, s);
+    for (int i = 0; i < 3; i++)
+        assert(Set_member(o, m[i]));
+    assert(Set_length(o) == 3);
+    Set_free(&o);
+    puts("SET DIFF NO OVERLAP");
+    Set_put(s2, m[3]);
+    Set_put(s2, m[4]);
+    o = Set_diff(s, s2);
+    for (int i = 0; i < 5; i++)
+        assert(Set_member(o, m[i]));
+    assert(Set_length(o) == 5);
+    Set_free(&o);
+    Set_free(&s2);
+    puts("SET DIFF OVERLAP");
+    s2 = Set_new(20, NULL, NULL);
+    Set_put(s2, m[2]);
+    Set_put(s2, m[3]);
+    o = Set_diff(s, s2);
+    assert(Set_member(o, m[0]));
+    assert(Set_member(o, m[1]));
+    assert(Set_member(o, m[3]));
+    assert(Set_length(o) == 3);
+    Set_free(&o);
+    Set_free(&s2);
+    puts("SET POINTER INDEPENDENT CMP");
+    int x = 1;
+    int y = 1;
+    int *onep1 = &x;
+    int *onep2 = &y;
+    s2 = Set_new(20, int_cmp, bad_hash);
+    Set_put(s2, onep1);
+    assert(Set_member(s2, onep2));
+    Set_free(&s2);
+    puts("SET PUT OVERWRITE");
+    s2 = Set_new(20, int_cmp, bad_hash);
+    Set_put(s2, onep1);
+    Set_put(s2, onep2);
+    assert(Set_length(s2) == 1);
+    assert(Set_remove(s2, onep2) == onep2);
+    Set_free(&s2);
+    puts("SET CHECK BAD INPUTS");
+    // Uncomment to see assertion failures
+    // s = Set_new(-1, NULL, NULL);
+    // s = Set_new(20, int_cmp, bad_hash);
+    // Set_free(NULL);
+    // Set_T t2 = NULL;
+    // Set_free(&t2);
+    // Set_member(NULL, m[0]);
+    // Set_member(s, NULL);
+    // Set_length(NULL);
+    // Set_put(NULL, m[0]);
+    // Set_put(s, NULL);
+    // Set_remove(NULL, m[0]);
+    // Set_remove(s, NULL);
+    // Set_map(NULL, NULL, NULL);
+    // Set_toArray(NULL, NULL);
+    // Set_T s2 = Set_new(20, NULL, NULL);
+    // Set_union(NULL, NULL);
+    // Set_inter(NULL, NULL);
+    // Set_minus(NULL, NULL);
+    // Set_diff(NULL, NULL);
+    // Set_union(s, s2);
+    // Set_inter(s, s2);
+    // Set_minus(s, s2);
+    // Set_diff(s, s2);
+    puts("Set_test done");
 }

@@ -85,6 +85,6 @@ void display_counts(Table_T counts)
     // qsort works on array of [char *, int *] pairs
     qsort(out, Table_length(counts), sizeof(void *) * 2, compar);
     for (int i = 0; i < Table_length(counts) * 2; i += 2)
-        printf("%s:%d\n", out[i], *((int *)out[i + 1]));
+        printf("%s,%d\n", out[i], *((int *)out[i + 1]));
     free(out);
 }

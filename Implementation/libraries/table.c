@@ -73,7 +73,7 @@ static struct node **find(T table, void *key)
     // for struct node **x, &x[h] = &(*(x+h)) = x + h
     // I just do x + h versus what's given in the text
     struct node **itr = table->buckets + hash(table, key);
-    for (; *itr && (*itr)->key != key; itr = &((*itr)->next))
+    for (; *itr && table->cmp((*itr)->key, key) != 0; itr = &((*itr)->next))
         ;
     return itr;
 }

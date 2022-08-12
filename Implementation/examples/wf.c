@@ -67,7 +67,7 @@ void free_count(void *key, void **value, void *cl)
 
 static int compar(const void *x, const void *y)
 {
-    // x, y are really pointers to 2 void * next to each other 
+    // x, y are really pointers to 2 void * next to each other
     // cast x to void ** and move by 1 to point to the second
     // pointer, then dereference that to get a void *
     // which is really an int *
@@ -86,4 +86,5 @@ void display_counts(Table_T counts)
     qsort(out, Table_length(counts), sizeof(void *) * 2, compar);
     for (int i = 0; i < Table_length(counts) * 2; i += 2)
         printf("%s:%d\n", out[i], *((int *)out[i + 1]));
+    free(out);
 }

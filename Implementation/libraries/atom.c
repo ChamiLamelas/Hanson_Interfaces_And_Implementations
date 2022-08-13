@@ -132,7 +132,7 @@ const char *Atom_new(const char *str, int len)
     new_node->str = (char *)(new_node + 1);
 
     // Copy data over
-    if (len > 0) 
+    if (len > 0)
         memcpy(new_node->str, str, len);
     new_node->str[len] = '\0';
 
@@ -187,4 +187,15 @@ const char *Atom_int(long n)
     if (i == 1)
         str[0] = '-';
     return Atom_new(str, len);
+}
+
+void Atom_free()
+{
+    struct node *next;
+    for (int i = 0; i < NUM_BUCKETS; i++)
+        for (; buckets[i]; buckets[i] = next)
+        {
+            next = buckets[i]->next;
+            free(buckets[i]);
+        }
 }

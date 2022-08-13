@@ -21,8 +21,24 @@ int func()
     return 0;
 }
 
-int *nfunc() {
+int *nfunc()
+{
     return NULL;
+}
+
+void nset(int **pp)
+{
+    *pp = NULL;
+}
+
+void outer(int *p)
+{
+    nset(&p);
+}
+
+void outer2(int **oo)
+{
+    nset(oo);
 }
 
 int main(int argc, char *argv[])
@@ -34,6 +50,12 @@ int main(int argc, char *argv[])
     printf("%d %d\n", check(NULL), check(x));
 
     printf("%d %d\n", !func(), !nfunc());
+    int z = 1;
+    int *zz = &z;
+    outer(zz);
+    printf("%d\n", zz == NULL);
+    outer2(&zz);
+    printf("%d\n", zz == NULL);
 
     printf("%s", "Hello, World!");
     return 0;

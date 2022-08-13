@@ -18,9 +18,9 @@ int main(int argc, char *argv[])
 {
     if (argc == 1)
         scan_file(NULL);
-    else
-        for (int i = 1; i < argc; i++)
-            scan_file(argv[i]);
+    for (int i = 1; i < argc; i++)
+        scan_file(argv[i]);
+    Atom_free();
     return 0;
 }
 

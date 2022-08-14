@@ -4,7 +4,8 @@
 #define T Set_T
 typedef struct T *T;
 
-extern T Set_new(int hint, int cmp(const void *x, const void *y), unsigned hash(const void *x));
+extern T Set_new(int hint, int cmp(const void *x, const void *y),
+                 unsigned hash(const void *x));
 extern void Set_free(T *set);
 extern int Set_length(T set);
 extern int Set_member(T set, void *member);

@@ -10,9 +10,9 @@
 #define NUM_BUCKETS 2048
 
 struct node {
-  struct node *next;
-  int len;
-  char *str;
+    struct node *next;
+    int len;
+    char *str;
 };
 
 static struct node *buckets[NUM_BUCKETS];
@@ -65,121 +65,121 @@ static unsigned long scatter[256] = {
     1884137923, 53392249,   1735424165, 1602280572};
 
 static unsigned hash(const char *str, int len) {
-  unsigned long h = 0;
-  for (int i = 0; i < len; i++) h = (h >> 1) + scatter[(unsigned char)str[i]];
-  return h % NUM_BUCKETS;
+    unsigned long h = 0;
+    for (int i = 0; i < len; i++) h = (h >> 1) + scatter[(unsigned char)str[i]];
+    return h % NUM_BUCKETS;
 }
 
 int Atom_length(const char *str) {
-  assert(str);
-  for (int i = 0; i < NUM_BUCKETS; i++)
-    for (struct node *node = buckets[i]; node; node = node->next)
-      if (node->str == str) return node->len;
-  assert(0);
-  return 0;
+    assert(str);
+    for (int i = 0; i < NUM_BUCKETS; i++)
+        for (struct node *node = buckets[i]; node; node = node->next)
+            if (node->str == str) return node->len;
+    assert(0);
+    return 0;
 }
 
 const char *Atom_new(const char *str, int len) {
-  // Support len = 0 so we can have an atom for an empty
-  // string
-  assert(str && len >= 0);
-  unsigned h = hash(str, len);
-  int i;
-  for (struct node *tmp = buckets[h]; tmp; tmp = tmp->next)
-    if (tmp->len == len) {
-      for (i = 0; i < len && tmp->str[i] == str[i]; i++)
-        ;
-      if (i == len) return tmp->str;
-    }
-  struct node *new_node;
-  /*
-  new_node -->    -----------
-                  8 bytes (new_node->next)
-                  4 bytes (new_node->len)
-                  8 bytes (new_node->str)
-                  -----------
-                  len + 1 bytes
-  */
-  new_node = malloc(sizeof(*new_node) + len + 1);
-  /*
-  new_node -->    -----------
-                  8 bytes (new_node->next)
-                  4 bytes (new_node->len) = len
-                  8 bytes (new_node->str)
-                  -----------
-                  len + 1 bytes
-  */
-  new_node->len = len;
-  /*
-  new_node -->    -----------
-                  8 bytes (new_node->next)
-                  4 bytes (new_node->len) = len
-                  8 bytes (new_node->str) = new_node + 1
-  new_node+1 -->  -----------
-                  len + 1 bytes
-  */
-  // x + y for pointer x and integer y will result in a new
-  // pointer that points to the address x + (sizeof(*x) * y)
-  // Above, x = new_node, y = 1, and
-  // sizeof(*x) = sizeof(struct node) = 8 + 4 + 8
-  new_node->str = (char *)(new_node + 1);
+    // Support len = 0 so we can have an atom for an empty
+    // string
+    assert(str && len >= 0);
+    unsigned h = hash(str, len);
+    int i;
+    for (struct node *tmp = buckets[h]; tmp; tmp = tmp->next)
+        if (tmp->len == len) {
+            for (i = 0; i < len && tmp->str[i] == str[i]; i++)
+                ;
+            if (i == len) return tmp->str;
+        }
+    struct node *new_node;
+    /*
+    new_node -->    -----------
+                    8 bytes (new_node->next)
+                    4 bytes (new_node->len)
+                    8 bytes (new_node->str)
+                    -----------
+                    len + 1 bytes
+    */
+    new_node = malloc(sizeof(*new_node) + len + 1);
+    /*
+    new_node -->    -----------
+                    8 bytes (new_node->next)
+                    4 bytes (new_node->len) = len
+                    8 bytes (new_node->str)
+                    -----------
+                    len + 1 bytes
+    */
+    new_node->len = len;
+    /*
+    new_node -->    -----------
+                    8 bytes (new_node->next)
+                    4 bytes (new_node->len) = len
+                    8 bytes (new_node->str) = new_node + 1
+    new_node+1 -->  -----------
+                    len + 1 bytes
+    */
+    // x + y for pointer x and integer y will result in a new
+    // pointer that points to the address x + (sizeof(*x) * y)
+    // Above, x = new_node, y = 1, and
+    // sizeof(*x) = sizeof(struct node) = 8 + 4 + 8
+    new_node->str = (char *)(new_node + 1);
 
-  // Copy data over
-  if (len > 0) memcpy(new_node->str, str, len);
-  new_node->str[len] = '\0';
+    // Copy data over
+    if (len > 0) memcpy(new_node->str, str, len);
+    new_node->str[len] = '\0';
 
-  // Add into table
-  new_node->next = buckets[h];
-  buckets[h] = new_node;
-  return new_node->str;
+    // Add into table
+    new_node->next = buckets[h];
+    buckets[h] = new_node;
+    return new_node->str;
 }
 
 const char *Atom_string(const char *str) {
-  assert(str);
-  return Atom_new(str, strlen(str));
+    assert(str);
+    return Atom_new(str, strlen(str));
 }
 
 static unsigned long abs_long(long n) {
-  if (n == LONG_MIN)
-    return LONG_MAX + 1UL;
-  else if (n < 0)
-    return -n;
-  return n;
+    if (n == LONG_MIN)
+        return LONG_MAX + 1UL;
+    else if (n < 0)
+        return -n;
+    return n;
 }
 
 const char *Atom_int(long n) {
-  unsigned long abs_n = abs_long(n);
+    unsigned long abs_n = abs_long(n);
 
-  // Track we need extra spot for - before taking absolute value
-  int len = n < 0;
+    // Track we need extra spot for - before taking absolute value
+    int len = n < 0;
 
-  // Calculate digits in number using temp (if n = 0, this would get len = 0)
-  unsigned long t = abs_n;
+    // Calculate digits in number using temp (if n = 0, this would get len = 0)
+    unsigned long t = abs_n;
 
-  // Use do-while instead of for so we can account for case of n = 0
-  // Otherwise (I had previously) separate case for n = 0
-  do {
-    len++;
-    t /= 10;
-  } while (t);
+    // Use do-while instead of for so we can account for case of n = 0
+    // Otherwise (I had previously) separate case for n = 0
+    do {
+        len++;
+        t /= 10;
+    } while (t);
 
-  char str[len];
-  int i = len;
-  // Fill string len-1,len-2,... (same loop here + stripping off last digit)
-  do {
-    str[--i] = '0' + (abs_n % 10);
-    abs_n /= 10;
-  } while (abs_n);
-  // If n < 0, len would be 1 more than number of digits
-  if (i == 1) str[0] = '-';
-  return Atom_new(str, len);
+    char str[len];
+    int i = len;
+    // Fill string len-1,len-2,... (same loop here + stripping off last digit)
+    do {
+        str[--i] = '0' + (abs_n % 10);
+        abs_n /= 10;
+    } while (abs_n);
+    // If n < 0, len would be 1 more than number of digits
+    if (i == 1) str[0] = '-';
+    return Atom_new(str, len);
 }
 
 void Atom_free() {
-  struct node *next;
-  for (int i = 0; i < NUM_BUCKETS; i++)
-    for (; buckets[i]; buckets[i] = next) {
-      next = buckets[i]->next;
-      free(buckets[i]);
-    }
+    struct node *next;
+    for (int i = 0; i < NUM_BUCKETS; i++)
+        for (; buckets[i]; buckets[i] = next) {
+            next = buckets[i]->next;
+            free(buckets[i]);
+        }
 }

@@ -8,12 +8,12 @@
 #define T List_T
 
 static T make_node(void *data, T next) {
-  T node;
-  node = malloc(sizeof(*node));
-  assert(node);
-  node->data = data;
-  node->next = next;
-  return node;
+    T node;
+    node = malloc(sizeof(*node));
+    assert(node);
+    node->data = data;
+    node->next = next;
+    return node;
 }
 
 /*
@@ -81,27 +81,27 @@ This is opposed to keeping pointer to previous node to write to
 the next field.
 */
 T List_list(void *x, ...) {
-  va_list ap;
-  va_start(ap, x);
-  T list = NULL;
-  T *pp = &list;
-  for (void *e = x; e; e = va_arg(ap, void *)) {
-    (*pp) = make_node(e, NULL);
-    pp = &((*pp)->next);
-  }
-  va_end(ap);
-  return list;
+    va_list ap;
+    va_start(ap, x);
+    T list = NULL;
+    T *pp = &list;
+    for (void *e = x; e; e = va_arg(ap, void *)) {
+        (*pp) = make_node(e, NULL);
+        pp = &((*pp)->next);
+    }
+    va_end(ap);
+    return list;
 }
 
 T List_push(T list, void *x) { return make_node(x, list); }
 
 T List_pop(T list, void **x) {
-  if (list == NULL) return list;
-  assert(x);
-  *x = list->data;
-  T new_list = list->next;
-  free(list);
-  return new_list;
+    if (list == NULL) return list;
+    assert(x);
+    *x = list->data;
+    T new_list = list->next;
+    free(list);
+    return new_list;
 }
 
 // lead and lag implementation
@@ -162,27 +162,27 @@ x1006       list->next->next    NULL
 pp now if dereferenced edits list->next->next which can be set to tail
 */
 T List_append(T list, T tail) {
-  // added optimization, if there isn't actually anything to attach
-  // don't bother iterating over list
-  if (tail) {
-    T *pp = &list;
-    for (; *pp; pp = &((*pp)->next))
-      ;
-    *pp = tail;
-  }
-  return list;
+    // added optimization, if there isn't actually anything to attach
+    // don't bother iterating over list
+    if (tail) {
+        T *pp = &list;
+        for (; *pp; pp = &((*pp)->next))
+            ;
+        *pp = tail;
+    }
+    return list;
 }
 
 T List_reverse(T list) {
-  T next;
-  T prev = NULL;
-  while (list) {
-    next = list->next;
-    list->next = prev;
-    prev = list;
-    list = next;
-  }
-  return prev;
+    T next;
+    T prev = NULL;
+    while (list) {
+        next = list->next;
+        list->next = prev;
+        prev = list;
+        list = next;
+    }
+    return prev;
 }
 
 // Lead lag implementation
@@ -300,45 +300,45 @@ x1009       new_list->next->data    B
 x1010       new_list->next->next    NULL
 */
 T List_copy(T list) {
-  T new_list = NULL;
-  T *pp = &new_list;
-  for (; list; list = list->next) {
-    *pp = make_node(list->data, NULL);
-    pp = &((*pp)->next);
-  }
-  return new_list;
+    T new_list = NULL;
+    T *pp = &new_list;
+    for (; list; list = list->next) {
+        *pp = make_node(list->data, NULL);
+        pp = &((*pp)->next);
+    }
+    return new_list;
 }
 
 int List_length(T list) {
-  int len = 0;
-  for (; list; list = list->next, len++)
-    ;
-  return len;
+    int len = 0;
+    for (; list; list = list->next, len++)
+        ;
+    return len;
 }
 
 void List_free(T *list) {
-  assert(list);
-  T next;
-  for (; *list; *list = next) {
-    next = (*list)->next;
-    free(*list);
-  }
-  *list = NULL;
+    assert(list);
+    T next;
+    for (; *list; *list = next) {
+        next = (*list)->next;
+        free(*list);
+    }
+    *list = NULL;
 }
 
 void List_map(T list, void apply(void **x, void *cl), void *cl) {
-  assert(apply);
-  for (; list; list = list->next) apply(&list->data, cl);
+    assert(apply);
+    for (; list; list = list->next) apply(&list->data, cl);
 }
 
 void **List_toArray(T list, void *end) {
-  int len = List_length(list) + 1;
-  void **arr;
-  arr = malloc(len * sizeof(*arr));
-  assert(arr);
-  for (int i = 0; i < len - 1; i++, list = list->next) arr[i] = list->data;
-  arr[len - 1] = end;
-  return arr;
+    int len = List_length(list) + 1;
+    void **arr;
+    arr = malloc(len * sizeof(*arr));
+    assert(arr);
+    for (int i = 0; i < len - 1; i++, list = list->next) arr[i] = list->data;
+    arr[len - 1] = end;
+    return arr;
 }
 
 #undef T

@@ -11,6 +11,7 @@
 #include "except.h"
 #include "list.h"
 #include "mem.h"
+#include "seq.h"
 #include "set.h"
 #include "stack.h"
 #include "table.h"
@@ -27,6 +28,7 @@ static void List_test(void);
 static void Table_test(void);
 static void Set_test(void);
 static void Array_test(void);
+static void Seq_test(void);
 
 int main(int argc, char *argv[]) {
     // Arith_test();
@@ -37,7 +39,8 @@ int main(int argc, char *argv[]) {
     // List_test();
     // Table_test();
     // Set_test();
-    Array_test();
+    // Array_test();
+    Seq_test();
     return 0;
 }
 
@@ -904,4 +907,98 @@ void Array_test(void) {
     // ArrayRep_init(t, 0, 4, NULL);
     Array_free(&a);
     puts("Array_test done");
+}
+
+void Seq_test(void) {
+    char *data[5] = {"a", "b", "c", "d", "e"};
+    puts("SEQ NEW");
+    Seq_T s = Seq_new(10);
+    assert(Seq_length(s) == 0);
+    Seq_free(&s);
+    puts("SEQ SEQ");
+    s = Seq_seq(data[0], data[1], NULL);
+    assert(Seq_length(s) == 2);
+    assert(Seq_get(s, 0) == data[0]);
+    assert(Seq_get(s, 1) == data[1]);
+    Seq_free(&s);
+    s = Seq_seq(NULL);
+    assert(Seq_length(s) == 0);
+    Seq_free(&s);
+    puts("SEQ PUT");
+    s = Seq_seq(data[0], data[1], NULL);
+    assert(Seq_put(s, 0, data[2]) == data[0]);
+    assert(Seq_put(s, 1, data[3]) == data[1]);
+    assert(Seq_length(s) == 2);
+    Seq_free(&s);
+    puts("SEQ ADDLO");
+    s = Seq_seq(NULL);
+    assert(Seq_addlo(s, data[0]) == data[0]);
+    assert(Seq_addlo(s, data[1]) == data[1]);
+    assert(Seq_length(s) == 2);
+    assert(Seq_get(s, 0) == data[1]);
+    assert(Seq_get(s, 1) == data[0]);
+    Seq_free(&s);
+    s = Seq_seq(data[2], data[3], NULL);
+    assert(Seq_addlo(s, data[0]) == data[0]);
+    assert(Seq_addlo(s, data[1]) == data[1]);
+    assert(Seq_length(s) == 4);
+    assert(Seq_get(s, 0) == data[1]);
+    assert(Seq_get(s, 1) == data[0]);
+    assert(Seq_get(s, 2) == data[2]);
+    assert(Seq_get(s, 3) == data[3]);
+    Seq_free(&s);
+    puts("SEQ ADDHI");
+    s = Seq_seq(NULL);
+    assert(Seq_addhi(s, data[0]) == data[0]);
+    assert(Seq_addhi(s, data[1]) == data[1]);
+    assert(Seq_length(s) == 2);
+    assert(Seq_get(s, 1) == data[1]);
+    assert(Seq_get(s, 0) == data[0]);
+    Seq_free(&s);
+    s = Seq_seq(data[2], data[3], NULL);
+    assert(Seq_addhi(s, data[0]) == data[0]);
+    assert(Seq_addhi(s, data[1]) == data[1]);
+    assert(Seq_length(s) == 4);
+    assert(Seq_get(s, 0) == data[2]);
+    assert(Seq_get(s, 1) == data[3]);
+    assert(Seq_get(s, 2) == data[0]);
+    assert(Seq_get(s, 3) == data[1]);
+    Seq_free(&s);
+    puts("SEQ REMLO");
+    s = Seq_seq(data[0], data[1], NULL);
+    assert(Seq_remlo(s) == data[0]);
+    assert(Seq_get(s, 0) == data[1]);
+    assert(Seq_remlo(s) == data[1]);
+    assert(Seq_length(s) == 0);
+    Seq_free(&s);
+    puts("SEQ REMHI");
+    s = Seq_seq(data[0], data[1], NULL);
+    assert(Seq_remhi(s) == data[1]);
+    assert(Seq_get(s, 0) == data[0]);
+    assert(Seq_remhi(s) == data[0]);
+    assert(Seq_length(s) == 0);
+    Seq_free(&s);
+    puts("SEQ CHECK BAD INPUTS");
+    // Seq_new(-1);
+    // Seq_free(NULL);
+    Seq_T ns = NULL;
+    // Seq_free(&ns);
+    // Seq_length(NULL);
+    // Seq_get(NULL, 0);
+    // Seq_put(NULL, 0, NULL);
+    // Seq_addlo(NULL, NULL);
+    // Seq_addhi(NULL, NULL);
+    // Seq_remlo(NULL);
+    // Seq_remhi(NULL);
+    Seq_T is = Seq_seq("a", "b", NULL);
+    // Seq_get(is, -1);
+    // Seq_get(is, 2);
+    // Seq_put(is, -1, NULL);
+    // Seq_put(is, 2, NULL);
+    Seq_T es = Seq_seq(NULL);
+    // Seq_remlo(es);
+    // Seq_remhi(es);
+    Seq_free(&is);
+    Seq_free(&es);
+    puts("Seq_test done");
 }

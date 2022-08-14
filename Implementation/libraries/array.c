@@ -26,7 +26,9 @@ T Array_new(int length, int size) {
 
 void Array_free(T* array) {
     assert(array && *array);
-    free((*array)->array);
+    if ((*array)->length > 0) {
+        free((*array)->array);
+    }
     free(*array);
     *array = NULL;
 }
@@ -59,7 +61,7 @@ void Array_resize(T array, int length) {
         assert(array->array);
         // in his implementation, he just uses RESIZE which hides a call to
         // Mem_Resize which just wraps realloc which does not guarantee
-        // initialization of extra bytes to 0 (memset does that here, 
+        // initialization of extra bytes to 0 (memset does that here,
         // could also do a call to calloc)
         if (length > array->length) {
             memset(array->array + (length * array->size), 0,

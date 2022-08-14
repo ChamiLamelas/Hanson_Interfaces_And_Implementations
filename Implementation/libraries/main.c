@@ -978,6 +978,35 @@ void Seq_test(void) {
     assert(Seq_remhi(s) == data[0]);
     assert(Seq_length(s) == 0);
     Seq_free(&s);
+    puts("SEQ RESIZE");
+    s = Seq_new(3);
+    for (int i = 0; i < 4; i++) {
+        Seq_addhi(s, data[i]);
+    }
+    assert(Seq_length(s) == 4);
+    for (int i = 0; i < 4; i++) {
+        assert(Seq_get(s, i) == data[i]);
+    }
+    Seq_free(&s);
+    s = Seq_new(3);
+    for (int i = 3; i >= 0; i--) {
+        Seq_addlo(s, data[i]);
+    }
+    assert(Seq_length(s) == 4);
+    for (int i = 0; i < 4; i++) {
+        assert(Seq_get(s, i) == data[i]);
+    }
+    Seq_free(&s);
+    s = Seq_new(3);
+    Seq_addhi(s, data[0]);
+    Seq_addhi(s, data[1]);
+    Seq_addhi(s, data[2]);
+    Seq_remlo(s);
+    Seq_addhi(s, data[3]);
+    Seq_addhi(s, data[4]);
+    for (int i = 1; i < 5; i++) {
+        assert(Seq_get(s, i - 1) == data[i]);
+    }
     puts("SEQ CHECK BAD INPUTS");
     // Seq_new(-1);
     // Seq_free(NULL);

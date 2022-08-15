@@ -11,6 +11,7 @@
 #include "except.h"
 #include "list.h"
 #include "mem.h"
+#include "ring.h"
 #include "seq.h"
 #include "set.h"
 #include "stack.h"
@@ -29,6 +30,7 @@ static void Table_test(void);
 static void Set_test(void);
 static void Array_test(void);
 static void Seq_test(void);
+static void Ring_test(void);
 
 int main(int argc, char *argv[]) {
     // Arith_test();
@@ -40,7 +42,8 @@ int main(int argc, char *argv[]) {
     // Table_test();
     // Set_test();
     // Array_test();
-    Seq_test();
+    // Seq_test();
+    Ring_test();
     return 0;
 }
 
@@ -1030,4 +1033,211 @@ void Seq_test(void) {
     Seq_free(&is);
     Seq_free(&es);
     puts("Seq_test done");
+}
+
+void Ring_test(void) {
+    char *data[5] = {"a", "b", "c", "d", "e"};
+    puts("RING NEW");
+    Ring_T r = Ring_new();
+    assert(Ring_length(r) == 0);
+    Ring_free(&r);
+    puts("RING RING");
+    r = Ring_ring(NULL);
+    assert(Ring_length(r) == 0);
+    Ring_free(&r);
+    r = Ring_ring(data[0], data[1], NULL);
+    assert(Ring_length(r) == 2);
+    assert(Ring_get(r, 0) == data[0]);
+    assert(Ring_get(r, 1) == data[1]);
+    Ring_free(&r);
+    puts("RING PUT");
+    r = Ring_ring(data[0], data[1], NULL);
+    assert(Ring_put(r, 0, data[2]) == data[0]);
+    assert(Ring_put(r, 1, data[3]) == data[1]);
+    assert(Ring_get(r, 0) == data[2]);
+    assert(Ring_get(r, 1) == data[3]);
+    Ring_free(&r);
+    puts("RING ADDLO");
+    r = Ring_ring(data[0], data[1], NULL);
+    assert(Ring_addlo(r, data[2]) == data[2]);
+    assert(Ring_addlo(r, data[3]) == data[3]);
+    assert(Ring_get(r, 0) == data[3]);
+    assert(Ring_get(r, 1) == data[2]);
+    assert(Ring_get(r, 2) == data[0]);
+    assert(Ring_get(r, 3) == data[1]);
+    assert(Ring_length(r) == 4);
+    Ring_free(&r);
+    puts("RING ADDHI");
+    r = Ring_ring(data[0], data[1], NULL);
+    assert(Ring_addhi(r, data[2]) == data[2]);
+    assert(Ring_addhi(r, data[3]) == data[3]);
+    for (int i = 0; i <= 3; i++) {
+        assert(Ring_get(r, i) == data[i]);
+    }
+    assert(Ring_length(r) == 4);
+    Ring_free(&r);
+    puts("RING REMLO");
+    r = Ring_ring(data[0], data[1], data[2], data[3], NULL);
+    assert(Ring_remlo(r) == data[0]);
+    assert(Ring_remlo(r) == data[1]);
+    assert(Ring_length(r) == 2);
+    Ring_free(&r);
+    puts("RING REMHI");
+    r = Ring_ring(data[0], data[1], data[2], data[3], NULL);
+    assert(Ring_remhi(r) == data[3]);
+    assert(Ring_remhi(r) == data[2]);
+    assert(Ring_length(r) == 2);
+    Ring_free(&r);
+    puts("RING ADD");
+    r = Ring_ring(data[0], data[1], data[2], NULL);
+    Ring_add(r, 2, data[3]);
+    assert(Ring_get(r, 0) == data[0]);
+    assert(Ring_get(r, 1) == data[3]);
+    assert(Ring_get(r, 2) == data[1]);
+    assert(Ring_get(r, 3) == data[2]);
+    assert(Ring_length(r) == 4);
+    Ring_free(&r);
+    r = Ring_ring(data[0], data[1], data[2], NULL);
+    Ring_add(r, 3, data[3]);
+    assert(Ring_get(r, 0) == data[0]);
+    assert(Ring_get(r, 1) == data[1]);
+    assert(Ring_get(r, 2) == data[3]);
+    assert(Ring_get(r, 3) == data[2]);
+    assert(Ring_length(r) == 4);
+    Ring_free(&r);
+    r = Ring_ring(data[0], data[1], data[2], NULL);
+    Ring_add(r, -2, data[3]);
+    assert(Ring_get(r, 0) == data[0]);
+    assert(Ring_get(r, 1) == data[3]);
+    assert(Ring_get(r, 2) == data[1]);
+    assert(Ring_get(r, 3) == data[2]);
+    assert(Ring_length(r) == 4);
+    Ring_free(&r);
+    r = Ring_ring(data[0], data[1], data[2], NULL);
+    Ring_add(r, -1, data[3]);
+    assert(Ring_get(r, 0) == data[0]);
+    assert(Ring_get(r, 1) == data[1]);
+    assert(Ring_get(r, 2) == data[3]);
+    assert(Ring_get(r, 3) == data[2]);
+    assert(Ring_length(r) == 4);
+    Ring_free(&r);
+    r = Ring_ring(data[0], NULL);
+    Ring_add(r, 1, data[1]);
+    assert(Ring_get(r, 0) == data[1]);
+    assert(Ring_get(r, 1) == data[0]);
+    assert(Ring_length(r) == 2);
+    Ring_free(&r);
+    r = Ring_ring(data[0], NULL);
+    Ring_add(r, -1, data[1]);
+    assert(Ring_get(r, 0) == data[1]);
+    assert(Ring_get(r, 1) == data[0]);
+    assert(Ring_length(r) == 2);
+    Ring_free(&r);
+    r = Ring_ring(data[0], NULL);
+    Ring_add(r, 2, data[1]);
+    assert(Ring_get(r, 0) == data[0]);
+    assert(Ring_get(r, 1) == data[1]);
+    assert(Ring_length(r) == 2);
+    Ring_free(&r);
+    r = Ring_ring(data[0], NULL);
+    Ring_add(r, 0, data[1]);
+    assert(Ring_get(r, 0) == data[0]);
+    assert(Ring_get(r, 1) == data[1]);
+    assert(Ring_length(r) == 2);
+    Ring_free(&r);
+    r = Ring_new();
+    Ring_add(r, 0, data[0]);
+    assert(Ring_get(r, 0) == data[0]);
+    assert(Ring_length(r) == 1);
+    Ring_free(&r);
+    r = Ring_new();
+    Ring_add(r, 1, data[0]);
+    assert(Ring_get(r, 0) == data[0]);
+    assert(Ring_length(r) == 1);
+    Ring_free(&r);
+    puts("RING REMOVE");
+    r = Ring_ring(data[0], data[1], data[2], data[3], data[4], NULL);
+    assert(Ring_remove(r, 0) == data[0]);
+    assert(Ring_length(r) == 4);
+    for (int i = 0; i < 4; i++) {
+        assert(Ring_get(r, i) == data[i + 1]);
+    }
+    Ring_free(&r);
+    r = Ring_ring(data[0], data[1], data[2], data[3], data[4], NULL);
+    assert(Ring_remove(r, 4) == data[4]);
+    assert(Ring_length(r) == 4);
+    for (int i = 0; i < 4; i++) {
+        assert(Ring_get(r, i) == data[i]);
+    }
+    Ring_free(&r);
+    r = Ring_ring(data[0], data[1], data[2], data[3], data[4], NULL);
+    assert(Ring_remove(r, 1) == data[1]);
+    assert(Ring_length(r) == 4);
+    assert(Ring_get(r, 0) == data[0]);
+    assert(Ring_get(r, 1) == data[2]);
+    assert(Ring_get(r, 2) == data[3]);
+    assert(Ring_get(r, 3) == data[4]);
+    Ring_free(&r);
+    r = Ring_ring(data[0], data[1], data[2], data[3], data[4], NULL);
+    assert(Ring_remove(r, 2) == data[2]);
+    assert(Ring_length(r) == 4);
+    assert(Ring_get(r, 0) == data[0]);
+    assert(Ring_get(r, 1) == data[1]);
+    assert(Ring_get(r, 2) == data[3]);
+    assert(Ring_get(r, 3) == data[4]);
+    Ring_free(&r);
+    r = Ring_ring(data[0], data[1], data[2], data[3], data[4], NULL);
+    assert(Ring_remove(r, 3) == data[3]);
+    assert(Ring_length(r) == 4);
+    assert(Ring_get(r, 0) == data[0]);
+    assert(Ring_get(r, 1) == data[1]);
+    assert(Ring_get(r, 2) == data[2]);
+    assert(Ring_get(r, 3) == data[4]);
+    Ring_free(&r);
+    puts("RING ROTATE");
+    r = Ring_ring(data[0], data[1], data[2], data[3], data[4], NULL);
+    Ring_rotate(r, -3);
+    assert(Ring_get(r, 0) == data[3]);
+    assert(Ring_get(r, 1) == data[4]);
+    assert(Ring_get(r, 2) == data[0]);
+    assert(Ring_get(r, 3) == data[1]);
+    assert(Ring_get(r, 4) == data[2]);
+    assert(Ring_length(r) == 5);
+    Ring_free(&r);
+    r = Ring_ring(data[0], data[1], data[2], data[3], data[4], NULL);
+    Ring_rotate(r, 3);
+    assert(Ring_get(r, 0) == data[2]);
+    assert(Ring_get(r, 1) == data[3]);
+    assert(Ring_get(r, 2) == data[4]);
+    assert(Ring_get(r, 3) == data[0]);
+    assert(Ring_get(r, 4) == data[1]);
+    assert(Ring_length(r) == 5);
+    Ring_free(&r);
+    puts("RING INVALID INPUTS");
+    // Ring_free(NULL);
+    Ring_T r2 = NULL;
+    // Ring_free(&r2);
+    // Ring_length(NULL);
+    // Ring_get(NULL, 0);
+    r2 = Ring_ring("a", "b", NULL);
+    // Ring_get(r2, -1);
+    // Ring_get(r2, 2);
+    // Ring_put(NULL, 0, "c");
+    // Ring_put(r2, -1, "c");
+    // Ring_put(r2, 2, "c");
+    // Ring_add(NULL, 0, "c");
+    // Ring_add(r2, -3, "c");
+    // Ring_add(r2, 4, "c");
+    // Ring_remove(NULL, 0);
+    // Ring_remove(r2, -1);
+    // Ring_remove(r2, 2);
+    // Ring_rotate(NULL, 2);
+    // Ring_rotate(r2, 3);
+    // Ring_rotate(r2, -3);
+    // Ring_addlo(NULL, "c");
+    // Ring_addhi(NULL, "c");
+    // Ring_remlo(NULL);
+    // Ring_remhi(NULL);
+    Ring_free(&r2);
+    puts("Ring_test done");
 }

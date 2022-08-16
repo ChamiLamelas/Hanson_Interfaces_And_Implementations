@@ -8,6 +8,7 @@
 #include "array.h"
 #include "arrayrep.h"
 #include "atom.h"
+#include "bit.h"
 #include "except.h"
 #include "list.h"
 #include "mem.h"
@@ -31,6 +32,7 @@ static void Set_test(void);
 static void Array_test(void);
 static void Seq_test(void);
 static void Ring_test(void);
+static void Bit_test(void);
 
 int main(int argc, char *argv[]) {
     // Arith_test();
@@ -43,7 +45,8 @@ int main(int argc, char *argv[]) {
     // Set_test();
     // Array_test();
     // Seq_test();
-    Ring_test();
+    // Ring_test();
+    // Bit_test();
     return 0;
 }
 
@@ -1240,4 +1243,441 @@ void Ring_test(void) {
     // Ring_remhi(NULL);
     Ring_free(&r2);
     puts("Ring_test done");
+}
+
+void bit_apply(int n, int bit, void *cl) { *(int *)cl += (bit ? n : 0); }
+
+void Bit_test(void) {
+    int total = 0;
+    puts("BIT NEW");
+    Bit_T s = Bit_new(10);
+    assert(Bit_length(s) == 10);
+    assert(Bit_count(s) == 0);
+    Bit_free(&s);
+    puts("BIT PUT");
+    s = Bit_new(10);
+    assert(Bit_put(s, 0, 1) == 0);
+    for (int i = 1; i < 10; i++) {
+        assert(Bit_get(s, i) == 0);
+    }
+    assert(Bit_get(s, 0) == 1);
+    assert(Bit_count(s) == 1);
+    assert(Bit_put(s, 0, 0) == 1);
+    assert(Bit_get(s, 0) == 0);
+    assert(Bit_count(s) == 0);
+    Bit_put(s, 0, 1);
+    Bit_put(s, 5, 1);
+    Bit_put(s, 9, 1);
+    assert(Bit_get(s, 1) == 0);
+    assert(Bit_get(s, 2) == 0);
+    assert(Bit_get(s, 3) == 0);
+    assert(Bit_get(s, 4) == 0);
+    assert(Bit_get(s, 6) == 0);
+    assert(Bit_get(s, 7) == 0);
+    assert(Bit_get(s, 8) == 0);
+    assert(Bit_count(s) == 3);
+    Bit_free(&s);
+    puts("BIT SET");
+    s = Bit_new(42);
+    Bit_set(s, 2, 2);
+    assert(Bit_get(s, 2));
+    assert(Bit_count(s) == 1);
+    Bit_put(s, 2, 0);
+    Bit_set(s, 10, 13);
+    for (int i = 10; i <= 13; i++) {
+        assert(Bit_get(s, i));
+    }
+    for (int i = 0; i < 10; i++) {
+        assert(!Bit_get(s, i));
+    }
+    for (int i = 14; i < Bit_length(s); i++) {
+        assert(!Bit_get(s, i));
+    }
+    assert(Bit_count(s) == 4);
+    Bit_set(s, 8, 31);
+    for (int i = 8; i <= 15; i++) {
+        assert(Bit_get(s, i));
+    }
+    for (int i = 0; i < 8; i++) {
+        assert(!Bit_get(s, i));
+    }
+    for (int i = 32; i < Bit_length(s); i++) {
+        assert(!Bit_get(s, i));
+    }
+    assert(Bit_count(s) == 24);
+    Bit_free(&s);
+    puts("BIT CLEAR");
+    s = Bit_new(42);
+    Bit_set(s, 0, Bit_length(s) - 1);
+    Bit_clear(s, 2, 2);
+    assert(!Bit_get(s, 2));
+    assert(Bit_count(s) == Bit_length(s) - 1);
+    Bit_put(s, 2, 1);
+    Bit_clear(s, 10, 13);
+    for (int i = 10; i <= 13; i++) {
+        assert(!Bit_get(s, i));
+    }
+    for (int i = 0; i < 10; i++) {
+        assert(Bit_get(s, i));
+    }
+    for (int i = 14; i < Bit_length(s); i++) {
+        assert(Bit_get(s, i));
+    }
+    assert(Bit_count(s) == Bit_length(s) - 4);
+    Bit_clear(s, 8, 31);
+    for (int i = 8; i <= 15; i++) {
+        assert(!Bit_get(s, i));
+    }
+    for (int i = 0; i < 8; i++) {
+        assert(Bit_get(s, i));
+    }
+    for (int i = 32; i < Bit_length(s); i++) {
+        assert(Bit_get(s, i));
+    }
+    assert(Bit_count(s) == Bit_length(s) - 24);
+    Bit_free(&s);
+    puts("BIT NOT");
+    s = Bit_new(42);
+    Bit_not(s, 2, 2);
+    assert(Bit_get(s, 2));
+    Bit_not(s, 2, 2);
+    assert(!Bit_get(s, 2));
+    Bit_set(s, 0, Bit_length(s) - 1);
+    Bit_not(s, 10, 13);
+    for (int i = 10; i <= 13; i++) {
+        assert(!Bit_get(s, i));
+    }
+    for (int i = 0; i < 10; i++) {
+        assert(Bit_get(s, i));
+    }
+    for (int i = 14; i < Bit_length(s); i++) {
+        assert(Bit_get(s, i));
+    }
+    assert(Bit_count(s) == Bit_length(s) - 4);
+    Bit_not(s, 8, 31);
+    for (int i = 0; i < 8; i++) {
+        assert(Bit_get(s, i));
+    }
+    for (int i = 32; i < Bit_length(s); i++) {
+        assert(Bit_get(s, i));
+    }
+    for (int i = 8; i < 10; i++) {
+        assert(!Bit_get(s, i));
+    }
+    for (int i = 10; i <= 13; i++) {
+        assert(Bit_get(s, i));
+    }
+    for (int i = 14; i <= 31; i++) {
+        assert(!Bit_get(s, i));
+    }
+    for (int i = 32; i < Bit_length(s); i++) {
+        assert(Bit_get(s, i));
+    }
+    assert(Bit_count(s) == Bit_length(s) - 20);
+    Bit_free(&s);
+    puts("BIT LT");
+    s = Bit_new(10);
+    Bit_put(s, 0, 1);
+    Bit_set(s, 2, 4);
+    Bit_put(s, 7, 1);
+    Bit_T s2 = Bit_new(10);
+    Bit_put(s2, 0, 1);
+    Bit_set(s2, 2, 4);
+    Bit_set(s2, 7, 8);
+    Bit_T s3 = Bit_new(10);
+    Bit_put(s3, 0, 1);
+    Bit_set(s3, 2, 4);
+    Bit_put(s3, 8, 1);
+    Bit_T s4 = Bit_new(10);
+    Bit_put(s4, 0, 1);
+    Bit_set(s4, 2, 4);
+    Bit_put(s4, 7, 1);
+    Bit_T s6 = Bit_new(10);
+    assert(!Bit_lt(s, s));
+    assert(Bit_lt(s, s2));
+    assert(!Bit_lt(s, s3));
+    assert(!Bit_lt(s, s4));
+    assert(Bit_lt(s6, s));
+    puts("BIT EQ");
+    assert(Bit_eq(s, s));
+    assert(!Bit_eq(s, s2));
+    assert(!Bit_eq(s, s3));
+    assert(Bit_eq(s, s4));
+    assert(!Bit_eq(s6, s));
+    puts("BIT LEQ");
+    assert(Bit_leq(s, s));
+    assert(Bit_leq(s, s2));
+    assert(!Bit_leq(s, s3));
+    assert(Bit_leq(s, s4));
+    assert(Bit_leq(s6, s));
+    puts("BIT MAP");
+    Bit_map(s, bit_apply, &total);
+    assert(total == +2 + 3 + 4 + 7);
+    puts("BIT UNION");
+    Bit_T out = Bit_union(s, s2);
+    assert(Bit_get(out, 0));
+    assert(!Bit_get(out, 1));
+    assert(Bit_get(out, 2));
+    assert(Bit_get(out, 3));
+    assert(Bit_get(out, 4));
+    assert(!Bit_get(out, 5));
+    assert(!Bit_get(out, 6));
+    assert(Bit_get(out, 7));
+    assert(Bit_get(out, 8));
+    assert(!Bit_get(out, 9));
+    assert(Bit_count(out) == 6);
+    Bit_free(&out);
+    out = Bit_union(s, s3);
+    assert(Bit_get(out, 0));
+    assert(!Bit_get(out, 1));
+    assert(Bit_get(out, 2));
+    assert(Bit_get(out, 3));
+    assert(Bit_get(out, 4));
+    assert(!Bit_get(out, 5));
+    assert(!Bit_get(out, 6));
+    assert(Bit_get(out, 7));
+    assert(Bit_get(out, 8));
+    assert(!Bit_get(out, 9));
+    assert(Bit_count(out) == 6);
+    Bit_free(&out);
+    out = Bit_union(s, s6);
+    assert(Bit_get(out, 0));
+    assert(!Bit_get(out, 1));
+    assert(Bit_get(out, 2));
+    assert(Bit_get(out, 3));
+    assert(Bit_get(out, 4));
+    assert(!Bit_get(out, 5));
+    assert(!Bit_get(out, 6));
+    assert(Bit_get(out, 7));
+    assert(!Bit_get(out, 8));
+    assert(!Bit_get(out, 9));
+    assert(Bit_count(out) == 5);
+    Bit_free(&out);
+    out = Bit_union(s, NULL);
+    assert(Bit_get(out, 0));
+    assert(!Bit_get(out, 1));
+    assert(Bit_get(out, 2));
+    assert(Bit_get(out, 3));
+    assert(Bit_get(out, 4));
+    assert(!Bit_get(out, 5));
+    assert(!Bit_get(out, 6));
+    assert(Bit_get(out, 7));
+    assert(!Bit_get(out, 8));
+    assert(!Bit_get(out, 9));
+    assert(Bit_count(out) == 5);
+    Bit_free(&out);
+    puts("BIT INTER");
+    out = Bit_inter(s, s2);
+    assert(Bit_get(out, 0));
+    assert(!Bit_get(out, 1));
+    assert(Bit_get(out, 2));
+    assert(Bit_get(out, 3));
+    assert(Bit_get(out, 4));
+    assert(!Bit_get(out, 5));
+    assert(!Bit_get(out, 6));
+    assert(Bit_get(out, 7));
+    assert(!Bit_get(out, 8));
+    assert(!Bit_get(out, 9));
+    assert(Bit_count(out) == 5);
+    Bit_free(&out);
+    out = Bit_inter(s, s3);
+    assert(Bit_get(out, 0));
+    assert(!Bit_get(out, 1));
+    assert(Bit_get(out, 2));
+    assert(Bit_get(out, 3));
+    assert(Bit_get(out, 4));
+    assert(!Bit_get(out, 5));
+    assert(!Bit_get(out, 6));
+    assert(!Bit_get(out, 7));
+    assert(!Bit_get(out, 8));
+    assert(!Bit_get(out, 9));
+    assert(Bit_count(out) == 4);
+    Bit_free(&out);
+    out = Bit_inter(s, s4);
+    assert(Bit_get(out, 0));
+    assert(!Bit_get(out, 1));
+    assert(Bit_get(out, 2));
+    assert(Bit_get(out, 3));
+    assert(Bit_get(out, 4));
+    assert(!Bit_get(out, 5));
+    assert(!Bit_get(out, 6));
+    assert(Bit_get(out, 7));
+    assert(!Bit_get(out, 8));
+    assert(!Bit_get(out, 9));
+    assert(Bit_count(out) == 5);
+    Bit_free(&out);
+    out = Bit_inter(s, s6);
+    for (int i = 0; i < 10; i++) {
+        assert(!Bit_get(out, i));
+    }
+    assert(Bit_count(out) == 0);
+    Bit_free(&out);
+    out = Bit_inter(s, NULL);
+    for (int i = 0; i < 10; i++) {
+        assert(!Bit_get(out, i));
+    }
+    assert(Bit_count(out) == 0);
+    Bit_free(&out);
+    puts("BIT MINUS");
+    out = Bit_minus(s, s2);
+    for (int i = 0; i < Bit_length(out); i++) {
+        assert(!Bit_get(out, i));
+    }
+    assert(Bit_count(out) == 0);
+    Bit_free(&out);
+    out = Bit_minus(s, s3);
+    for (int i = 0; i < Bit_length(out); i++) {
+        if (i == 7) {
+            assert(Bit_get(out, i));
+        } else {
+            assert(!Bit_get(out, i));
+        }
+    }
+    assert(Bit_count(out) == 1);
+    Bit_free(&out);
+    out = Bit_minus(s, s4);
+    for (int i = 0; i < Bit_length(out); i++) {
+        assert(!Bit_get(out, i));
+    }
+    assert(Bit_count(out) == 0);
+    Bit_free(&out);
+    out = Bit_minus(s, s6);
+    assert(Bit_get(out, 0));
+    assert(!Bit_get(out, 1));
+    assert(Bit_get(out, 2));
+    assert(Bit_get(out, 3));
+    assert(Bit_get(out, 4));
+    assert(!Bit_get(out, 5));
+    assert(!Bit_get(out, 6));
+    assert(Bit_get(out, 7));
+    assert(!Bit_get(out, 8));
+    assert(!Bit_get(out, 9));
+    assert(Bit_count(out) == 5);
+    Bit_free(&out);
+    out = Bit_minus(s, NULL);
+    assert(Bit_get(out, 0));
+    assert(!Bit_get(out, 1));
+    assert(Bit_get(out, 2));
+    assert(Bit_get(out, 3));
+    assert(Bit_get(out, 4));
+    assert(!Bit_get(out, 5));
+    assert(!Bit_get(out, 6));
+    assert(Bit_get(out, 7));
+    assert(!Bit_get(out, 8));
+    assert(!Bit_get(out, 9));
+    assert(Bit_count(out) == 5);
+    Bit_free(&out);
+    puts("BIT DIFF");
+    out = Bit_diff(s, s2);
+    for (int i = 0; i < Bit_length(out); i++) {
+        if (i == 8) {
+            assert(Bit_get(out, i));
+        } else {
+            assert(!Bit_get(out, i));
+        }
+    }
+    assert(Bit_count(out) == 1);
+    Bit_free(&out);
+    out = Bit_diff(s, s3);
+    for (int i = 0; i < Bit_length(out); i++) {
+        if (i == 7 || i == 8) {
+            assert(Bit_get(out, i));
+        } else {
+            assert(!Bit_get(out, i));
+        }
+    }
+    assert(Bit_count(out) == 2);
+    Bit_free(&out);
+    out = Bit_diff(s, s4);
+    for (int i = 0; i < Bit_length(out); i++) {
+        assert(!Bit_get(out, i));
+    }
+    assert(Bit_count(out) == 0);
+    Bit_free(&out);
+    out = Bit_diff(s, s6);
+    assert(Bit_get(out, 0));
+    assert(!Bit_get(out, 1));
+    assert(Bit_get(out, 2));
+    assert(Bit_get(out, 3));
+    assert(Bit_get(out, 4));
+    assert(!Bit_get(out, 5));
+    assert(!Bit_get(out, 6));
+    assert(Bit_get(out, 7));
+    assert(!Bit_get(out, 8));
+    assert(!Bit_get(out, 9));
+    assert(Bit_count(out) == 5);
+    Bit_free(&out);
+    out = Bit_diff(s, NULL);
+    assert(Bit_get(out, 0));
+    assert(!Bit_get(out, 1));
+    assert(Bit_get(out, 2));
+    assert(Bit_get(out, 3));
+    assert(Bit_get(out, 4));
+    assert(!Bit_get(out, 5));
+    assert(!Bit_get(out, 6));
+    assert(Bit_get(out, 7));
+    assert(!Bit_get(out, 8));
+    assert(!Bit_get(out, 9));
+    assert(Bit_count(out) == 5);
+    Bit_free(&out);
+    Bit_free(&s);
+    Bit_free(&s2);
+    Bit_free(&s3);
+    Bit_free(&s4);
+    Bit_free(&s6);
+    puts("BIT INVALID INPUTS");
+    // Bit_new(-1);
+    // Bit_length(NULL);
+    // Bit_count(NULL);
+    // Bit_free(NULL);
+    Bit_T ns = NULL;
+    // Bit_free(&ns);
+    // Bit_get(NULL, 0);
+    Bit_T es = Bit_new(10);
+    Bit_T es2 = Bit_new(9);
+    // Bit_get(es, -1);
+    // Bit_get(es, 10);
+    // Bit_put(NULL, 0, 1);
+    // Bit_put(es, -1, 1);
+    // Bit_put(es, 10, 1);
+    // Bit_put(es, 0, 2);
+    // Bit_put(es, 0, -1);
+    // Bit_clear(NULL, 2, 5);
+    // Bit_clear(es, -1, 5);
+    // Bit_clear(es, 10, 5);
+    // Bit_clear(es, 2, -1);
+    // Bit_clear(es, 2, 10);
+    // Bit_clear(es, 3, 2);
+    // Bit_set(NULL, 2, 5);
+    // Bit_set(es, -1, 5);
+    // Bit_set(es, 10, 5);
+    // Bit_set(es, 2, -1);
+    // Bit_set(es, 2, 10);
+    // Bit_set(es, 3, 2);
+    // Bit_not(NULL, 2, 5);
+    // Bit_not(es, -1, 5);
+    // Bit_not(es, 10, 5);
+    // Bit_not(es, 2, -1);
+    // Bit_not(es, 2, 10);
+    // Bit_not(es, 3, 2);
+    // Bit_lt(es, NULL);
+    // Bit_lt(NULL, es);
+    // Bit_lt(es, es2);
+    // Bit_eq(es, NULL);
+    // Bit_eq(NULL, es);
+    // Bit_eq(es, es2);
+    // Bit_leq(es, NULL);
+    // Bit_leq(NULL, es);
+    // Bit_leq(es, es2);
+    // Bit_map(NULL, bit_apply, &total);
+    // Bit_map(es, NULL, NULL);
+    // Bit_union(NULL, NULL);
+    // Bit_union(es, es2);
+    // Bit_inter(NULL, NULL);
+    // Bit_inter(es, es2);
+    // Bit_minus(NULL, NULL);
+    // Bit_minus(es, es2);
+    // Bit_diff(NULL, NULL);
+    // Bit_diff(es, es2);
+    puts("Bit_test done");
 }

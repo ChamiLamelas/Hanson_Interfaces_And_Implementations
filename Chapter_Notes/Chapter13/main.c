@@ -262,5 +262,8 @@ int main(int argc, char *argv[])
     for (int i = 0; i < 8; i++)
         printf("0x%X = %d\n", lsbmask[i], lsbmask[i]);
 
+    unsigned char cc = 150;
+    printf("%d %d\n", cc >> 4, cc % 16);
+
     return 0;
 }

@@ -23,17 +23,6 @@ static inline int convert_positive(int i, int len) {
     return i <= 0 ? i + len + 1 : i;
 }
 
-static void check_positions(int i, int j, int len) {
-    check_position(i, len);
-    check_position(j, len);
-}
-
-static void swap(int *i, int *j) {
-    int tmp = *i;
-    *i = *j;
-    *j = tmp;
-}
-
 static char *alloc_str(int len) {
     char *s = malloc(len + 1);
     s[len] = '\0';
@@ -41,11 +30,14 @@ static char *alloc_str(int len) {
 }
 
 static void order_positions(int *i, int *j, int len) {
-    check_positions(*i, *j, len);
+    check_position(*i, len);
+    check_position(*j, len);
     *i = convert_positive(*i, len);
     *j = convert_positive(*j, len);
     if (*i > *j) {
-        swap(i, j);
+        int tmp = *i;
+        *i = *j;
+        *j = tmp;
     }
 }
 
@@ -331,7 +323,8 @@ int Str_rmatch(const char *s, int i, int j, const char *str) {
     if (str_len == 0) {
         return j;
     }
-    return ((j - i >= str_len) && strncmp(s + j - str_len - 1, str, str_len) == 0)
+    return ((j - i >= str_len) &&
+            strncmp(s + j - str_len - 1, str, str_len) == 0)
                ? j - str_len
                : 0;
 }

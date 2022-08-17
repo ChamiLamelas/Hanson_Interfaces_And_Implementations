@@ -53,5 +53,9 @@ int main(int argc, char *argv[])
     mod_struct(i);
     printf("%d\n", i.x);
     puts(cset);
+    int e = 'a';
+    printf("%d\n", e);
+    unsigned char f = 97;
+    printf("%c\n", f);
     return 0;
 }

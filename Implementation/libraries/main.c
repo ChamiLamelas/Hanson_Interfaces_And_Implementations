@@ -18,6 +18,7 @@
 #include "stack.h"
 #include "str.h"
 #include "table.h"
+#include "text.h"
 
 static Except_T ex = {"exception"};
 static Except_T ex2 = {"exception2"};
@@ -35,6 +36,7 @@ static void Seq_test(void);
 static void Ring_test(void);
 static void Bit_test(void);
 static void Str_test(void);
+static void Text_test(void);
 
 int main(int argc, char *argv[]) {
     // Arith_test();
@@ -49,7 +51,8 @@ int main(int argc, char *argv[]) {
     // Seq_test();
     // Ring_test();
     // Bit_test();
-    Str_test();
+    // Str_test();
+    Text_test();
     return 0;
 }
 
@@ -1688,9 +1691,6 @@ void Bit_test(void) {
 static int check(char *a, char *e) {
     int c = strcmp(a, e);
     free(a);
-    if (c != 0) {
-        puts(a);
-    }
     return c == 0;
 }
 
@@ -1919,4 +1919,176 @@ void Str_test(void) {
     // Str_rmatch(si, 0, 6, si2);
     // Str_rmatch(si, 0, 1, NULL);
     puts("Str_test done");
+}
+
+static int text_check(Text_T a, char *e) {
+    int c = strncmp(a.str, e, a.len);
+    int al = a.len;
+    if (c != 0) {
+        puts(a.str);
+    }
+    Text_free(&a);
+    return c == 0 && strlen(e) == al;
+}
+
+static int text_check2(Text_T a, char *e) {
+    int c = strncmp(a.str, e, a.len);
+    return c == 0 && strlen(e) == a.len;
+}
+
+void Text_test(void) {
+    Text_T empty = {0, ""};
+    Text_T abc = {3, "abc"};
+    puts("TEXT SUB");
+    assert(text_check2(Text_sub(empty, 1, 1), ""));
+    assert(text_check2(Text_sub(abc, 2, 2), ""));
+    assert(text_check2(Text_sub(abc, 1, 3), "ab"));
+    assert(text_check2(Text_sub(abc, -3, 3), "ab"));
+    assert(text_check2(Text_sub(abc, -3, 0), "abc"));
+    puts("TEXT DUP");
+    assert(text_check(Text_dup(empty, 5), ""));
+    assert(text_check(Text_dup(abc, 0), ""));
+    assert(text_check(Text_dup(abc, 1), "abc"));
+    assert(text_check(Text_dup(abc, 2), "abcabc"));
+    puts("TEXT CAT");
+    Text_T def = {3, "def"};
+    assert(text_check(Text_cat(empty, empty), ""));
+    assert(text_check(Text_cat(abc, empty), "abc"));
+    assert(text_check(Text_cat(abc, def), "abcdef"));
+    puts("TEXT REVERSE");
+    Text_T a = {1, "a"};
+    assert(text_check(Text_reverse(empty), ""));
+    assert(text_check(Text_reverse(a), "a"));
+    assert(text_check(Text_reverse(abc), "cba"));
+    puts("TEXT MAP");
+    Text_T ABC = {3, "ABC"};
+    Text_T abcDEF = {6, "abcDEF"};
+    assert(text_check(Text_map(empty, &abc, &ABC), ""));
+    assert(text_check(Text_map(abcDEF, NULL, NULL), "ABCDEF"));
+    assert(text_check(Text_map(abcDEF, &Text_ucase, &Text_lcase), "abcdef"));
+    puts("TEXT POS");
+    assert(Text_pos(abc, 3) == 3);
+    assert(Text_pos(abc, -1) == 3);
+    puts("TEXT CMP");
+    Text_T abcd = {4, "abcd"};
+    assert(Text_cmp(abc, abcd) < 0);
+    assert(Text_cmp(abcd, abc) > 0);
+    assert(Text_cmp(abc, abc) == 0);
+    puts("TEXT CHR");
+    Text_T cbc = {3, "cbc"};
+    assert(Text_chr(abc, 2, 3, 'b') == 2);
+    assert(Text_chr(abc, 2, 3, 'c') == 0);
+    assert(Text_chr(cbc, 1, 0, 'c') == 1);
+    puts("TEXT RCHR");
+    assert(Text_rchr(abc, 2, 3, 'b') == 2);
+    assert(Text_rchr(abc, 2, 3, 'c') == 0);
+    assert(Text_rchr(cbc, 1, 0, 'c') == 3);
+    puts("TEXT UPTO");
+    Text_T ace = {3, "ace"};
+    Text_T bcd = {3, "bcd"};
+    Text_T bdf = {3, "bdf"};
+    Text_T aae = {3, "aae"};
+    Text_T baf = {3, "baf"};
+    assert(Text_upto(ace, 1, 0, bcd) == 2);
+    assert(Text_upto(ace, -3, 4, bdf) == 0);
+    assert(Text_upto(aae, -3, 3, baf) == 1);
+    puts("TEXT RUPTO");
+    assert(Text_rupto(ace, 1, 0, bcd) == 3);
+    assert(Text_rupto(ace, -3, 4, bdf) == 0);
+    assert(Text_rupto(aae, -3, 4, baf) == 3);
+    puts("TEXT FIND");
+    Text_T c = {1, "c"};
+    Text_T bc = {2, "bc"};
+    Text_T accd = {4, "accd"};
+    assert(Text_find(abcd, 2, 4, bcd) == 0);
+    assert(Text_find(abcd, 2, 4, bc) == 2);
+    assert(Text_find(accd, 2, 4, c) == 2);
+    assert(Text_find(abc, 2, 4, empty) == 2);
+    puts("TEXT RFIND");
+    assert(Text_rfind(abcd, 2, 4, bcd) == 0);
+    assert(Text_rfind(abcd, 2, 4, bc) == 2);
+    assert(Text_rfind(accd, 2, 4, c) == 3);
+    assert(Text_rfind(abc, 2, 4, empty) == 4);
+    puts("TEXT ANY");
+    assert(Text_any(abcd, 2, abc) == 3);
+    assert(Text_any(abcd, -3, abc) == 3);
+    assert(Text_any(abcd, -3, ace) == 0);
+    puts("TEXT MANY");
+    Text_T dce = {3, "dce"};
+    Text_T dcb = {3, "dcb"};
+    Text_T abeb = {4, "abeb"};
+    assert(Text_many(abcd, -3, 0, dce) == 0);
+    assert(Text_many(abcd, -3, -1, dcb) == 4);
+    assert(Text_many(abeb, 2, 5, dcb) == 3);
+    puts("TEXT RMANY");
+    assert(Text_rmany(abcd, -3, 0, dce) == 3);
+    assert(Text_rmany(abcd, -3, -1, dcb) == 2);
+    assert(Text_rmany(abeb, 1, 5, dcb) == 4);
+    puts("TEXT MATCH");
+    Text_T abcb = {4, "abcb"};
+    assert(Text_match(abcd, 2, 4, bcd) == 0);
+    assert(Text_match(abcd, 2, 5, bcd) == 5);
+    assert(Text_match(abcb, -3, 0, bc) == 4);
+    assert(Text_match(abcb, -3, 0, empty) == 2);
+    puts("TEXT RMATCH");
+    Text_T cb = {2, "cb"};
+    assert(Text_rmatch(abcd, 2, 4, bcd) == 0);
+    assert(Text_rmatch(abcd, 2, 5, bcd) == 2);
+    assert(Text_rmatch(abcb, -3, 0, cb) == 3);
+    assert(Text_rmatch(abcb, -3, 0, empty) == 5);
+    puts("TEXT INVALID INPUTS");
+    Text_T si = {4, "abcd"};
+    Text_T si2 = {4, "defg"};
+    // Text_sub(si, -5, 0);
+    // Text_sub(si, 6, 0);
+    // Text_sub(si, 0, -5);
+    // Text_sub(si, 0, 6);
+    // Text_dup(si, -1);
+    // Text_map(si, NULL, NULL);
+    // Text_pos(si, -5);
+    // Text_pos(si, 6);
+    // Text_chr(si, -5, 0, 97);
+    // Text_chr(si, 6, 0, 97);
+    // Text_chr(si, 0, -5, 97);
+    // Text_chr(si, 0, 6, 97);
+    // Text_rchr(si, -5, 0, 97);
+    // Text_rchr(si, 6, 0, 97);
+    // Text_rchr(si, 0, -5, 97);
+    // Text_rchr(si, 0, 6, 97);
+    // Text_upto(si, -5, 0, si2);
+    // Text_upto(si, 6, 0, si2);
+    // Text_upto(si, 0, -5, si2);
+    // Text_upto(si, 0, 6, si2);
+    // Text_rupto(si, -5, 0, si2);
+    // Text_rupto(si, 6, 0, si2);
+    // Text_rupto(si, 0, -5, si2);
+    // Text_rupto(si, 0, 6, si2);
+    // Text_find(si, -5, 0, si2);
+    // Text_find(si, 6, 0, si2);
+    // Text_find(si, 0, -5, si2);
+    // Text_find(si, 0, 6, si2);
+    // Text_rfind(si, -5, 0, si2);
+    // Text_rfind(si, 6, 0, si2);
+    // Text_rfind(si, 0, -5, si2);
+    // Text_rfind(si, 0, 6, si2);
+    // Text_any(si, -5, si2);
+    // Text_any(si, -6, si2);
+    // Text_any(si, 5, si2);
+    // Text_many(si, -5, 0, si2);
+    // Text_many(si, 6, 0, si2);
+    // Text_many(si, 0, -5, si2);
+    // Text_many(si, 0, 6, si2);
+    // Text_rmany(si, -5, 0, si2);
+    // Text_rmany(si, 6, 0, si2);
+    // Text_rmany(si, 0, -5, si2);
+    // Text_rmany(si, 0, 6, si2);
+    // Text_match(si, -5, 0, si2);
+    // Text_match(si, 6, 0, si2);
+    // Text_match(si, 0, -5, si2);
+    // Text_match(si, 0, 6, si2);
+    // Text_rmatch(si, -5, 0, si2);
+    // Text_rmatch(si, 6, 0, si2);
+    // Text_rmatch(si, 0, -5, si2);
+    // Text_rmatch(si, 0, 6, si2);
+    puts("Text_test done");
 }

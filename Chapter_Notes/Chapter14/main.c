@@ -6,6 +6,8 @@ https://www.tutorialspoint.com/c_standard_library/c_function_putc.htm
 https://www.tutorialspoint.com/c_standard_library/c_function_fputc.htm
 
 fputc is apparently prefered: https://stackoverflow.com/questions/14008907/fputc-vs-putc-in-c
+
+It seems that the reason flags is 
 */
 
 #include <stdio.h>

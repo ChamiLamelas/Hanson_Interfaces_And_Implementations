@@ -100,6 +100,7 @@ int XP_mul(T z, int n, T x, int m, T y) {
             z[i + j] = carry % BASE;
             carry /= BASE;
         }
+        // B/c carryout = 1 if carry is ever 1 (carry will either be 0 or 1)
         carryout |= carry;
     }
     return carryout;
@@ -338,7 +339,7 @@ void XP_rshift(int n, T z, int m, T x, int s, int fill) {
     /*
     s/8 is first digit to be copied from x. Why? Remember that x
     is stored least -> most significant bytes. When we right shift
-    least significant bytes are removed. If z cannot fit the shift, 
+    least significant bytes are removed. If z cannot fit the shift,
     j < n protects against overfilling.
     */
     for (int i = s / 8; i < m && j < n; i++, j++) {
